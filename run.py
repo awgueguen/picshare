@@ -4,11 +4,19 @@ from flask import (Flask, g, render_template, request,
                    redirect, send_from_directory)
 from werkzeug.utils import secure_filename
 
+# --------------------------------------------------------------------------- #
+# global setup                                                                #
+# --------------------------------------------------------------------------- #
+
 app = Flask(__name__)
 DATABASE = 'app.db'
 UPLOAD_FOLDER = 'uploads'
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# --------------------------------------------------------------------------- #
+# methods                                                                     #
+# --------------------------------------------------------------------------- #
 
 
 def get_db():
@@ -17,10 +25,18 @@ def get_db():
         db = g._database = sqlite3.connect(DATABASE)
     return db
 
+# --------------------------------------------------------------------------- #
+# routes                                                                      #
+# --------------------------------------------------------------------------- #
+
+# jinja routes -------------------------------------------------------------- #
+
 
 @app.route('/uploads/<name>')
 def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
+
+# index --------------------------------------------------------------------- #
 
 
 @app.route('/')
@@ -28,6 +44,10 @@ def index():
     db = get_db()
     pictures = db.execute("SELECT filename FROM pictures")
     return render_template('index.html', all_pictures=pictures)
+
+# show ---------------------------------------------------------------------- #
+
+# image upload -------------------------------------------------------------- #
 
 
 @app.route('/', methods=['POST'])
@@ -50,5 +70,6 @@ def create():
     return redirect('/')
 
 
+# test ---------------------------------------------------------------------- #
 if __name__ == '__main__':
     app.run(debug=True)
