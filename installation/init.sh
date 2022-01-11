@@ -10,6 +10,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade pip
 pip3 install pycodestyle
+pip3 install autopep8
 
 echo -e "\n# installation de flask"
 pip3 install flask

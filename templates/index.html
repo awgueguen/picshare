@@ -7,21 +7,18 @@
         <title>Document</title>
     </head>
     <body>
-        {% if title %}
-        <h1>{{ title }}</h1>
-        {% else %}
-        <h1>Hello World!</h1>
-        {% endif %}
-        <h2>{{ subtitle }}</h2>
-
-        {% block list_title %}
-        <h3>Je suis un nouveau titre</h3>
-        {% endblock %}
-
-        <ul>
-            {% for item in list_items %}
-            <li>{{ item }}</li>
-            {% endfor %}
-        </ul>
+        <h2>My Pictures</h2>
+        {% for picture in all_pictures %}
+            <img src="{{ config['UPLOAD_FOLDER'] }}/{{ picture[0] }}" 
+                width=200>
+        {% endfor %}
+        <h2>Upload new File</h2>
+        <form method=post enctype=multipart/form-data>
+        <!-- method définie comme post, attendue en flask
+        variable action invisible, spécifie l'url vers laquelle se dirige le bouton
+        si nulle, reste sur le même -->
+        <input type="file" name="file" />
+        <input type="submit" value="Upload" />
+        </form>
     </body>
 </html>
