@@ -14,7 +14,8 @@ source .venv/bin/activate
 
 echo -e "\n# installation via le fichier requirements.txt\n"
 pip3 install --upgrade pip
-pip3 install -r requirements.txt
+pip3 install -r installation/requirements.txt
+# installe les modules depuis le fichier requirements.txt
 
 echo -e "\n# création du fichier .flaskenv"
 

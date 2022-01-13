@@ -1,0 +1,20 @@
+Organisation Globale :
+Essayer au mieux de suivre un process SCRUM.
+Une première demi-journée sera prise pour découper au maximum le projet en Epic & User Stories, il sera aussi question de définir un ordre de priorité des tâches ainsi que les différents rôles de chacun.
+Les buts premiers lors de ce premier découpage seront de :
+-    Définir une approche permettant d’attaquer au plus vite la partie Front
+-    Définir une approche bienveillante, axé sur l’apprentissage du back, et le développement des compétences.
+Au début de la deuxième semaine, un nouvel échange sera organisé afin de faire le point sur la charge de travail restante.
+
+En cas de « panne » (si on a le cerveau bloqué), on peut éventuellement soit faire une pause, discuter de ce qui semble bloquer, en parler peut-être avec Raïa ou autre… en tout cas, tenter de faire preuve de compréhension, chacun respecte la fatigue et charge mentale de l’autre.
+
+Pour cela nous utiliserons les outils suivants : Google Sheet (Backlog Global), Trello (Répartition hebdomadaire des tâches), Discord (Communication à distance).
+
+Nous respecterons aussi un planning rigoureux d’organisation : 
+-    un meeting hebdomadaire en début de semaine, afin de faire le point sur les tâches à engager et leurs difficultés (30min ~ 1h)
+-    un meeting en début de chaque journée afin de faire le point sur la journée précédente : quelles sont les tâches qui ont été terminé ? Les tâches en retard ?
+il sera aussi question des phases tests des fonctionnalités développées, et de leurs attributions au sein de l’équipe. (principe de peer review)
+-    si nécessaire, des séances de live coding, ou de shadow coding seront misent en place afin d’attribuer un temps nécessaire et clé au développement de chacun des membres de l’équipe.
+
+Plusieurs membres de l’équipe ayant des enfants, les journées s’arrêteront à une heure prévue, et aucun travail dédié au projet au groupe ne sera réalisé après cette heure.
+Nous préférerons des explications /révisions globales (type mémento par exemple).

@@ -25,7 +25,6 @@ cursor.execute("""CREATE TABLE pictures (
                                 FOREIGN KEY (category_id)
                                 REFERENCES categories(id))""")
 
-
 cursor.execute('DROP TABLE IF EXISTS comments')
 cursor.execute("""CREATE TABLE comments (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,6 +33,24 @@ cursor.execute("""CREATE TABLE comments (
                             content VARCHAR(200) NOT NULL,
                             picture_id INTEGER NOT NULL,
                                 CONSTRAINT fk_pictures
+                                FOREIGN KEY (picture_id)
+                                REFERENCES pictures(id))""")
+
+
+cursor.execute('DROP TABLE IF EXISTS tags')
+cursor.execute("""CREATE TABLE tags (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name VARCHAR(200) NOT NULL)""")
+
+cursor.execute('DROP TABLE IF EXISTS maintag')
+cursor.execute("""CREATE TABLE maintag(
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            tag_id VARCHAR(200) NOT NULL,
+                            picture_id VARCHAR(200) NOT NULL,
+                            CONSTRAINT fk_tags
+                                FOREIGN KEY (tag_id)
+                                REFERENCES tags(id),
+                            CONSTRAINT fk_pictures
                                 FOREIGN KEY (picture_id)
                                 REFERENCES pictures(id))""")
 
@@ -47,10 +64,10 @@ for name in ["Cats", "Dogs", "People", "Backgrounds"]:
 
 # pictures ------------------------------------------------------------------ #
 for data in [
-        ("2022-08-12 10:12:21", "cat.jpg", "Cat", "Hello", 1),
-        ("2022-08-10 10:12:21", "dog.jpg", "Dog", "Hello", 2),
-        ("2022-07-12 10:12:21", "guy.jpg", "A guy", "Hello", 3),
-        ("2021-08-12 10:12:21", "woman.jpg", "A woman", "Hello", 3), ]:
+        ("2022-08-12 10:12:21", "cat-1.jpg", "Cat", "Hello", 1),
+        ("2022-08-10 10:12:21", "dog-1.jpg", "Dog", "Hello", 2),
+        ("2022-07-12 10:12:21", "guy-1.jpg", "A guy", "Hello", 3),
+        ("2021-08-12 10:12:21", "woman-1.jpg", "A woman", "Hello", 3), ]:
     cursor.execute("""INSERT INTO pictures
                         (upload_date, filename, name, description, category_id)
                         VALUES (?, ?, ?, ?, ?)""", data)
@@ -62,6 +79,15 @@ for data in [
     cursor.execute("""INSERT INTO comments
                         (upload_date, author, content, picture_id)
                         VALUES (?, ?, ?, ?)""", data)
+
+# tags ---------------------------------------------------------------------- #
+for name in ["cute", "what", "velvet", "nose"]:
+    cursor.execute("INSERT INTO tags (name) VALUES (?)", (name,))
+
+# maintag ------------------------------------------------------------------- #
+for data in [(1, 1), (1, 2), (2, 4), (3, 1), (4, 1)]:
+    cursor.execute(
+        "INSERT INTO maintag (tag_id, picture_id) VALUES (?, ?)", data)
 
 # We save our changes into the database file
 db.commit()
