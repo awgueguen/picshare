@@ -4,6 +4,7 @@ from flask import (Flask, g, render_template, request, flash,
                    redirect, send_from_directory)
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from unidecode import unidecode
 
 # --------------------------------------------------------------------------- #
 # global setup                                                                #
@@ -43,7 +44,7 @@ def get_db():
     return db
 
 
-def query_db(query, args=(), one=False):
+def query_db(query: str, args=(), one=False):
     """fetch data from a query and some args if needed
 
     Args:
@@ -61,7 +62,7 @@ def query_db(query, args=(), one=False):
     return (rv[0] if rv else None) if one else rv
 
 
-def execute_db(query, args=()):
+def execute_db(query: str, args=()):
     """exectute the db in case of a POST or a PUT
 
     Args:
@@ -91,7 +92,7 @@ def get_data(request, route=None, tab=None):
         return request.form.get('name')
 
 
-def convert_data(data, dependency, table):
+def convert_data(data: dict, dependency: str, table: str):
     if dependency == 'upload_date':
         return str(datetime.now())
     elif '_id' in dependency:
@@ -103,7 +104,7 @@ def convert_data(data, dependency, table):
         return data.get(dependency)
 
 
-def uber_validator(request, conditions):
+def uber_validator(request, conditions: list):
     if 'picture' in conditions:
         filename = get_data(request, 'valid_picture')
         if filename == '':
@@ -115,7 +116,7 @@ def uber_validator(request, conditions):
             return 'title missing'
 
 
-def rename_picture(data, table):
+def rename_picture(data: dict, table: str):
     """function used to return a new file name for any given picture
     according to it's table.
 
@@ -141,9 +142,24 @@ def rename_picture(data, table):
 
 # jinja routes -------------------------------------------------------------- #
 
+@ app.before_request
+def checkIfDeleted():
+    # va vérifier tous les fichiers enregistrés dans la bdd sont bien existant
+    # dans le dossier upload. Si non, delete la ligne de la bdd.
+
+    # mise en place --------------------------------------------------------- #
+    sql_request = 'SELECT filename FROM pictures'
+    rv = [i[0] for i in query_db(sql_request)]
+    sql_request = 'DELETE FROM pictures WHERE filename = ?'
+    # vérification ---------------------------------------------------------- #
+    for i in rv:
+        if not os.path.exists(app.config["UPLOAD_FOLDER"]+f'/{i}'):
+            execute_db(sql_request, (i,))
+
 
 @ app.route('/uploads/<name>')
 def download_file(name):
+    # vérifie l'intégrité des fichiers affichés
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
 
@@ -152,57 +168,71 @@ def download_file(name):
 
 @ app.route('/')
 def index():
-    return
+    # accéder à la db
+    db = get_db()
+    # selectionner les images de la table pictures
+    display_pictures = db.execute("SELECT filename FROM pictures")
+    # retourne des éléments de type sqlite => extraire avec fetchall
+    results = display_pictures.fetchall()
+    return render_template('index.html', all_pictures=results)
 
 
 # show ---------------------------------------------------------------------- #
 
+@ app.route("/<name>", methods=["GET"])
+def show_pictures(name):
+    db = get_db()
+    cursor = db.execute(
+        """SELECT upload_date, filename, name, description, category_id
+           FROM pictures
+           WHERE filename LIKE  ?""", ((name+'%'),))
+    picture = cursor.fetchone()
+    cursor = db.execute(
+        """SELECT comments.upload_date, content, author
+           FROM comments
+           INNER JOIN pictures
+           ON comments.picture_id = pictures.id""")
+    comment = cursor.fetchall()
 
-@ app.route('/')
-def show_picture():
-    return
+    return render_template("show.html", image=picture, comments=comment)
 
 
 # image upload -------------------------------------------------------------- #
 
 @ app.route('/upload', methods=['GET', 'POST'])
 def upload_picture():
-    # envoi à Jinja de la data sous forme d'un dictionnaire
+    # jinja ----------------------------------------------------------------- #
     jinja_data = {}
     jinja_data['ok_ext'] = ALLOWED_EXTENSIONS
-    # récupération des catégories pour les envoyer à Jinja
     sql_request = 'SELECT name FROM categories'
     jinja_data['categories'] = [i[0] for i in query_db(sql_request)]
 
-    # cas 1: accès simple à la page
+    # cas 1: accès simple à la page ----------------------------------------- #
     if 'picture' not in request.files:
         return render_template('upload.html', data=jinja_data)
 
-    # cas 2: un fichier est envoyé via le formulaire
+    # cas 2: un fichier est envoyé via le formulaire ------------------------ #
     else:
-        # vérification des paramètres
-        # si il y a bien une 'picture' & qu'un 'name' est donné
+        # vérification selon paramètre
         jinja_data['error'] = uber_validator(request, ['picture', 'name'])
         if jinja_data['error']:
             return render_template('upload.html', data=jinja_data)
 
-        # récupération propres des données enregistrés dans le request.form
-        # sous la forme d'un dictionnaire
+        # transforme request.form > dict
         data = get_data(request, 'post_picture', 'pictures')
 
-        # enregistrement sur le serveur de l'image '.save'
-        # enregistrement dans la bdd des valeurs du form 'execute_db'
+        # sauvegarde image dans la bdd & sur le serveur
         request.files['picture'].save(
             os.path.join(UPLOAD_FOLDER, data['filename']))
         sql_inject = ', '.join(list('?'*len(data.keys())))
         sql_request = f"""INSERT INTO pictures ({', '.join(data.keys())})
-                    VALUES ({sql_inject})"""
+                          VALUES ({sql_inject})"""
         execute_db(sql_request, tuple(data.values()))
 
-        # rajout aux données les informations de l'image
+        # infos image upload pour jinja
         jinja_data['picture_data'] = data
 
-    # après upload retourne la page avec un message de validation
+    # affichage après upload ------------------------------------------------ #
     return render_template('upload.html', data=jinja_data)
 
 
@@ -223,3 +253,30 @@ if __name__ == '__main__':
 
 # request.files['file'].save('/tmp/file')
 # file_length = os.stat('/tmp/file').st_size
+
+# extract hashtags
+
+
+def extract_hashtags(string: str, recurse=False):
+    # clean
+    if recurse is False:
+        allowed = [' ', '#']
+        string = string
+        string = ''.join([i for i in string if (i.isalnum() or i in allowed)])
+        while '# ' in string:
+            string = string.replace('# ', ' ')
+        while string[-1] == '#':
+            string = string[:-1]
+
+    # recursion
+    # base case
+    if not string or '#' not in string:
+        return []
+    # recursive case
+    else:
+        hash_pos = string.index('#')
+        if ' ' in string[hash_pos:]:
+            tag = string[hash_pos:string.index(' ', hash_pos)]
+        else:
+            tag = string[hash_pos:]
+        return [tag[1:]] + extract_hashtags(string[hash_pos+1:], recurse=True)

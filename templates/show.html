@@ -1,0 +1,13 @@
+{% extends 'index.html' %} {% block corps %}
+<!------ titre de l'image ---->
+{{ image[1] }} {{ image[0] }}
+
+<img src="{{ url_for('uploads', filename=image[1]) }}" width="200px" />
+<p>
+    {% for comment in comments %} {{ comment[0] }} <br />
+    {{ comment[1] }} <br />
+    {{ comment[2] }} <br />
+    {% endfor %}
+</p>
+
+{% endblock %}
