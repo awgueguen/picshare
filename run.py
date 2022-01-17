@@ -23,7 +23,8 @@ app.add_url_rule('/uploads/<path:filename>', endpoint='uploads',
 
 templates = {
     'pictures': ['upload_date', 'filename', 'name', 'description',
-                 'category_id']
+                 'category_id'],
+    'categories': ['name']
 }
 pairs = {'category_id': 'categories'}
 
@@ -77,19 +78,26 @@ def execute_db(query: str, args=()):
     return cur.lastrowid
 
 
-def get_data(request, route=None, tab=None):
-    if tab is not None:
-        template = templates[tab]
-        data = {i: j for i, j in request.form.items()}
-        clean_data = {template[i]: convert_data(data, template[i], tab)
-                      for i in range(len(template))}
+def get_data(request=None, route=None, tab=None, args=()):
+    if tab:
+        if args:
+            desc = ', '.join([i for i in args])
+            values = query_db(f'SELECT {desc} FROM {tab}')
+            clean_data = {i[0]: {args[j]: i[j]
+                                 for j in range(1, len(args))} for i in values}
+        else:
+            template = templates[tab]
+            values = {i: j for i, j in request.form.items()}
+            clean_data = {template[i]: convert_data(values, template[i], tab)
+                          for i in range(len(template))}
+
     if route == 'post_picture':
         clean_data['filename'] = rename_picture(request, tab)
-        return clean_data
     elif route == 'valid_picture':
         return secure_filename(request.files['picture'].filename)
     elif route == 'valid_name':
         return request.form.get('name')
+    return clean_data
 
 
 def convert_data(data: dict, dependency: str, table: str):
@@ -200,15 +208,13 @@ def inject_tags(tags: list, picture_id: int):
 def checkIfDeleted():
     # va vérifier que tous les fichiers enregistrés dans la bdd sont bien
     # existant dans le dossier upload. Si non, delete la ligne de la bdd.
-
     # mise en place --------------------------------------------------------- #
-    sql_request = 'SELECT filename FROM pictures'
-    rv = [i[0] for i in query_db(sql_request)]
+    rv = get_data(tab='pictures', args=('id', 'filename',))
     sql_request = 'DELETE FROM pictures WHERE filename = ?'
     # vérification ---------------------------------------------------------- #
-    for i in rv:
-        if not os.path.exists(app.config["UPLOAD_FOLDER"]+f'/{i}'):
-            execute_db(sql_request, (i,))
+    for i in rv.values():
+        if not os.path.exists(app.config["UPLOAD_FOLDER"]+f'/{i["filename"]}'):
+            execute_db(sql_request, (i["filename"],))
 
 
 @ app.route('/uploads/<name>')
@@ -217,10 +223,16 @@ def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
 
-@app.errorhandler(404)
+@ app.errorhandler(404)
 def page_not_found(e):
-    # note that we set the 404 status explicitly
+    # gestion d'une page html personnalisée
     return render_template('404.html'), 404
+
+
+@ app.context_processor
+def inject_menu():
+    rv = get_data(tab='categories', args=('id', 'name'))
+    return dict(menu=rv)
 
 
 # index --------------------------------------------------------------------- #

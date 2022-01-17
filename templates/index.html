@@ -1,3 +1,12 @@
 {% extends 'layout.html' %} {% block corps %} {% for picture in all_pictures %}
-<img src="{{ url_for('uploads', filename=picture[0]) }}" width="300" />
+<a
+    href="{{ url_for('show_pictures', name=picture[0][:picture[0].find('.')]) }}"
+>
+    <p>
+        <img
+            src="{{ url_for('uploads', filename=picture[0]) }}"
+            width="300"
+        /></p
+></a>
+
 {% endfor %} {% endblock %}
