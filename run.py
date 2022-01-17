@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from flask import (Flask, g, render_template, request, flash,
+from flask import (Flask, g, render_template, request, flash, abort,
                    redirect, send_from_directory)
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -136,16 +136,70 @@ def rename_picture(data: dict, table: str):
     return filename+'-'+number+extension
 
 
+def extract_tags(string: str, recurse=False):
+    """function use to extract all the # from a comment or description
+
+    Args:
+        string (str): a comment or description that might contain tags
+        recurse (bool, optional): state define in the function,
+        lighten the load of the function. Do not change to True.
+
+    Returns:
+        list: list containing all the extracted tags or an empty list
+    """
+    # clean
+    if recurse is False:
+        allowed = [' ', '#']
+        string = string
+        string = ''.join([i for i in string if (i.isalnum() or i in allowed)])
+        while '# ' in string:
+            string = string.replace('# ', ' ')
+        while string[-1] == '#':
+            string = string[:-1]
+
+    # recursion
+    # base case
+    if not string or '#' not in string:
+        return []
+    # recursive case
+    else:
+        hash_pos = string.index('#')
+        if ' ' in string[hash_pos:]:
+            tag = string[hash_pos:string.index(' ', hash_pos)]
+        else:
+            tag = string[hash_pos:]
+        return [tag[1:]] + extract_tags(string[hash_pos+1:], recurse=True)
+
+
+def inject_tags(tags: list, picture_id: int):
+    """function used to inject in the two tables of the db the differents tags
+    and their dependencies
+
+    Args:
+        tags (list): list of tags
+        picture_id (int): picture_id for the join table
+    """
+    sql_existing = query_db('SELECT id, name FROM tags')
+    clean_data = {i[1]: i[0] for i in sql_existing}
+    sql_tags = 'INSERT INTO tags (name) VALUES (?)'
+    sql_jointable = 'INSERT INTO maintag (tag_id, picture_id) VALUES (?, ?)'
+    for i in tags:
+        if i not in clean_data:
+            tag_id = execute_db(sql_tags, (i,))
+            clean_data[i] = tag_id
+        execute_db(sql_jointable, (clean_data[i], picture_id, ))
+
 # --------------------------------------------------------------------------- #
 # routes                                                                      #
 # --------------------------------------------------------------------------- #
 
 # jinja routes -------------------------------------------------------------- #
 
+
 @ app.before_request
 def checkIfDeleted():
-    # va vérifier tous les fichiers enregistrés dans la bdd sont bien existant
-    # dans le dossier upload. Si non, delete la ligne de la bdd.
+    # va vérifier que tous les fichiers enregistrés dans la bdd sont bien
+    # existant dans le dossier upload. Si non, delete la ligne de la bdd.
 
     # mise en place --------------------------------------------------------- #
     sql_request = 'SELECT filename FROM pictures'
@@ -163,6 +217,12 @@ def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
+
+
 # index --------------------------------------------------------------------- #
 
 
@@ -176,22 +236,33 @@ def index():
     results = display_pictures.fetchall()
     return render_template('index.html', all_pictures=results)
 
+# search -------------------------------------------------------------------- #
+
+
+@ app.route('/search')
+def search_engine():
+    data = request.args.to_dict()
+    return render_template('index.html')
 
 # show ---------------------------------------------------------------------- #
 
-@ app.route("/<name>", methods=["GET"])
+
+@ app.route("/gallery/<name>", methods=["GET", "POST"])
 def show_pictures(name):
     db = get_db()
     cursor = db.execute(
-        """SELECT upload_date, filename, name, description, category_id
+        """SELECT upload_date, filename, name, description, category_id, id
            FROM pictures
            WHERE filename LIKE  ?""", ((name+'%'),))
     picture = cursor.fetchone()
+    if picture is None:
+        abort(404)
     cursor = db.execute(
         """SELECT comments.upload_date, content, author
            FROM comments
            INNER JOIN pictures
-           ON comments.picture_id = pictures.id""")
+           ON comments.picture_id = pictures.id
+           WHERE pictures.id = ?""", (picture[-1],))
     comment = cursor.fetchall()
 
     return render_template("show.html", image=picture, comments=comment)
@@ -213,7 +284,7 @@ def upload_picture():
 
     # cas 2: un fichier est envoyé via le formulaire ------------------------ #
     else:
-        # vérification selon paramètre
+        # vérification selon paramètre(s)
         jinja_data['error'] = uber_validator(request, ['picture', 'name'])
         if jinja_data['error']:
             return render_template('upload.html', data=jinja_data)
@@ -227,10 +298,15 @@ def upload_picture():
         sql_inject = ', '.join(list('?'*len(data.keys())))
         sql_request = f"""INSERT INTO pictures ({', '.join(data.keys())})
                           VALUES ({sql_inject})"""
-        execute_db(sql_request, tuple(data.values()))
+        picture_id = execute_db(sql_request, tuple(data.values()))
 
         # infos image upload pour jinja
         jinja_data['picture_data'] = data
+
+        # récupère & sauvegarde les tags de la description
+        jinja_data['tags'] = extract_tags(data['description'])
+        if jinja_data['tags']:
+            inject_tags(jinja_data['tags'], picture_id)
 
     # affichage après upload ------------------------------------------------ #
     return render_template('upload.html', data=jinja_data)
@@ -254,29 +330,4 @@ if __name__ == '__main__':
 # request.files['file'].save('/tmp/file')
 # file_length = os.stat('/tmp/file').st_size
 
-# extract hashtags
-
-
-def extract_hashtags(string: str, recurse=False):
-    # clean
-    if recurse is False:
-        allowed = [' ', '#']
-        string = string
-        string = ''.join([i for i in string if (i.isalnum() or i in allowed)])
-        while '# ' in string:
-            string = string.replace('# ', ' ')
-        while string[-1] == '#':
-            string = string[:-1]
-
-    # recursion
-    # base case
-    if not string or '#' not in string:
-        return []
-    # recursive case
-    else:
-        hash_pos = string.index('#')
-        if ' ' in string[hash_pos:]:
-            tag = string[hash_pos:string.index(' ', hash_pos)]
-        else:
-            tag = string[hash_pos:]
-        return [tag[1:]] + extract_hashtags(string[hash_pos+1:], recurse=True)
+# extract tags

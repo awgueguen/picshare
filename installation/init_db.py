@@ -59,7 +59,7 @@ cursor.execute("""CREATE TABLE maintag(
 # --------------------------------------------------------------------------- #
 
 # categories ---------------------------------------------------------------- #
-for name in ["Cats", "Dogs", "People", "Backgrounds"]:
+for name in ["cats", "dogs", "people", "backgrounds"]:
     cursor.execute("INSERT INTO categories (name) VALUES (?)", (name,))
 
 # pictures ------------------------------------------------------------------ #
