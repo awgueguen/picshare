@@ -58,7 +58,7 @@
         <div class="page_body">
             <!----------------------- SIDEBAR ------------------>
             <div class="categories">
-                {% for i in menu.values() %}
+                {% for i in menu %}
                 <form
                     action="{{ url_for('show_pictures', name=i.get('name')) }}"
                 >

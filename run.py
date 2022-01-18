@@ -19,8 +19,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.add_url_rule('/uploads/<path:filename>', endpoint='uploads',
                  view_func=app.send_static_file)
 
-# app.secret_key = '123123'
-
 templates = {
     'pictures': ['upload_date', 'filename', 'name', 'description',
                  'category_id'],
@@ -81,14 +79,14 @@ def execute_db(query: str, args=()):
 def get_data(request=None, route=None, tab=None, args=()):
     if tab:
         if args:
-            desc = ', '.join([i for i in args])
-            values = query_db(f'SELECT {desc} FROM {tab}')
-            clean_data = {i[0]: {args[j]: i[j]
-                                 for j in range(1, len(args))} for i in values}
+            description = ', '.join([i for i in args])
+            values = query_db(f'SELECT {description} FROM {tab}')
+            clean_data = [{args[j]: i[j]
+                           for j in range(len(args))} for i in values]
         else:
             template = templates[tab]
             values = {i: j for i, j in request.form.items()}
-            clean_data = {template[i]: convert_data(values, template[i], tab)
+            clean_data = {template[i]: convert_data(values, template[i])
                           for i in range(len(template))}
 
     if route == 'post_picture':
@@ -100,7 +98,7 @@ def get_data(request=None, route=None, tab=None, args=()):
     return clean_data
 
 
-def convert_data(data: dict, dependency: str, table: str):
+def convert_data(data: dict, dependency: str):
     if dependency == 'upload_date':
         return str(datetime.now())
     elif '_id' in dependency:
@@ -208,19 +206,22 @@ def inject_tags(tags: list, picture_id: int):
 def checkIfDeleted():
     # va vérifier que tous les fichiers enregistrés dans la bdd sont bien
     # existant dans le dossier upload. Si non, delete la ligne de la bdd.
+
     # mise en place --------------------------------------------------------- #
-    rv = get_data(tab='pictures', args=('id', 'filename',))
+    rv = get_data(tab='pictures', args=('filename',))
     sql_request = 'DELETE FROM pictures WHERE filename = ?'
     # vérification ---------------------------------------------------------- #
-    for i in rv.values():
+    for i in rv:
         if not os.path.exists(app.config["UPLOAD_FOLDER"]+f'/{i["filename"]}'):
             execute_db(sql_request, (i["filename"],))
 
 
-@ app.route('/uploads/<name>')
-def download_file(name):
-    # vérifie l'intégrité des fichiers affichés
-    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
+@ app.context_processor
+def inject_menu():
+    # rv = get_data(tab='categories', args=('id', 'name'))
+    rv = get_data(tab='categories', args=('name',))
+
+    return dict(menu=rv)
 
 
 @ app.errorhandler(404)
@@ -229,13 +230,14 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 
-@ app.context_processor
-def inject_menu():
-    rv = get_data(tab='categories', args=('id', 'name'))
-    return dict(menu=rv)
-
+@ app.route('/uploads/<name>')
+def download_file(name):
+    # vérifie l'intégrité des fichiers affichés
+    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
 # index --------------------------------------------------------------------- #
+
+# TODO:
 
 
 @ app.route('/')
@@ -250,6 +252,8 @@ def index():
 
 # search -------------------------------------------------------------------- #
 
+# TODO:
+
 
 @ app.route('/search')
 def search_engine():
@@ -257,6 +261,8 @@ def search_engine():
     return render_template('index.html')
 
 # show ---------------------------------------------------------------------- #
+
+# TODO:
 
 
 @ app.route("/gallery/<name>", methods=["GET", "POST"])
@@ -287,8 +293,7 @@ def upload_picture():
     # jinja ----------------------------------------------------------------- #
     jinja_data = {}
     jinja_data['ok_ext'] = ALLOWED_EXTENSIONS
-    sql_request = 'SELECT name FROM categories'
-    jinja_data['categories'] = [i[0] for i in query_db(sql_request)]
+    jinja_data['categories'] = get_data(tab='categories', args=('name',))
 
     # cas 1: accès simple à la page ----------------------------------------- #
     if 'picture' not in request.files:
