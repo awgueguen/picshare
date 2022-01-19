@@ -18,6 +18,7 @@ cursor.execute("""CREATE TABLE pictures (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             upload_date TEXT NOT NULL,
                             filename VARCHAR(200) NOT NULL,
+                            author VARCHAR(20) NOT NULL,
                             name VARCHAR(20) NOT NULL,
                             description VARCHAR(200) NOT NULL,
                             category_id INTEGER NOT NULL,
@@ -29,8 +30,8 @@ cursor.execute('DROP TABLE IF EXISTS comments')
 cursor.execute("""CREATE TABLE comments (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             upload_date TEXT NOT NULL,
-                            author VARCHAR(200) NOT NULL,
-                            content VARCHAR(200) NOT NULL,
+                            author VARCHAR(20) NOT NULL,
+                            content VARCHAR(100) NOT NULL,
                             picture_id INTEGER NOT NULL,
                                 CONSTRAINT fk_pictures
                                 FOREIGN KEY (picture_id)
@@ -59,18 +60,19 @@ cursor.execute("""CREATE TABLE maintag(
 # --------------------------------------------------------------------------- #
 
 # categories ---------------------------------------------------------------- #
-for name in ["cats", "dogs", "people", "backgrounds"]:
+for name in ["Cats", "Dogs", "People", "Backgrounds"]:
     cursor.execute("INSERT INTO categories (name) VALUES (?)", (name,))
 
 # pictures ------------------------------------------------------------------ #
 for data in [
-        ("2022-08-12 10:12:21", "cat-1.jpg", "Cat", "Hello", 1),
-        ("2022-08-10 10:12:21", "dog-1.jpg", "Dog", "Hello", 2),
-        ("2022-07-12 10:12:21", "guy-1.jpg", "A guy", "Hello", 3),
-        ("2021-08-12 10:12:21", "woman-1.jpg", "A woman", "Hello", 3), ]:
+        ("2022-08-12 10:12:21", "cat-1.jpg", "Jean", "Cat", "Hello", 1),
+        ("2022-08-10 10:12:21", "dog-1.jpg", "Michel", "Dog", "Hello", 2),
+        ("2022-07-12 10:12:21", "guy-1.jpg", "Louise", "Guy", "Hello", 3),
+        ("2021-08-12 10:12:21", "woman-1.jpg", "Marc", "Woman", "Hello", 3), ]:
     cursor.execute("""INSERT INTO pictures
-                        (upload_date, filename, name, description, category_id)
-                        VALUES (?, ?, ?, ?, ?)""", data)
+                        (upload_date, filename, author,
+                        name, description, category_id)
+                        VALUES (?, ?, ?, ?, ?, ?)""", data)
 
 # comments ------------------------------------------------------------------ #
 for data in [

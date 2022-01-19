@@ -1,7 +1,8 @@
 import os
 import sqlite3
 from flask import (Flask, g, render_template, request, flash, abort,
-                   redirect, send_from_directory)
+                   redirect, send_from_directory, url_for)
+# TODO:
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from unidecode import unidecode
@@ -19,12 +20,19 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.add_url_rule('/uploads/<path:filename>', endpoint='uploads',
                  view_func=app.send_static_file)
 
+# --------------------------------------------------------------------------- #
+# tabs var                                                                    #
+# --------------------------------------------------------------------------- #
+
 templates = {
-    'pictures': ['upload_date', 'filename', 'name', 'description',
+    'pictures': ['upload_date', 'filename', 'author', 'name', 'description',
                  'category_id'],
-    'categories': ['name']
+    'comments': ['upload_date', 'author', 'content'],
+    'tags': ['name']
 }
-pairs = {'category_id': 'categories'}
+pairs = {'category_id': 'categories',
+         "picture_id": 'pictures',
+         'tag_id': 'tags'}
 
 # --------------------------------------------------------------------------- #
 # methods                                                                     #
@@ -35,7 +43,7 @@ def get_db():
     """get the db or even a cursor using `cur = get_db.execute(query)`
 
     Returns:
-        db: database
+        (db): database
     """
     db = getattr(g, '_database', None)
     if db is None:
@@ -53,7 +61,7 @@ def query_db(query: str, args=(), one=False):
         Defaults to False.
 
     Returns:
-        tuple: all the values fetched using the query
+        (tuple): all the values fetched using the query
     """
     cur = get_db().execute(query, args)
     rv = cur.fetchall()
@@ -69,38 +77,47 @@ def execute_db(query: str, args=()):
         args (tuple, optional): args if the query has `?`. Defaults to ().
 
     Returns:
-        int: return `cur.lastrowid`
+        (int): return `cur.lastrowid`
     """
     cur = get_db().execute(query, args)
     get_db().commit()
     return cur.lastrowid
 
 
-def get_data(request=None, route=None, tab=None, args=()):
-    if tab:
-        if args:
-            description = ', '.join([i for i in args])
-            values = query_db(f'SELECT {description} FROM {tab}')
-            clean_data = [{args[j]: i[j]
-                           for j in range(len(args))} for i in values]
-        else:
-            template = templates[tab]
-            values = {i: j for i, j in request.form.items()}
-            clean_data = {template[i]: convert_data(values, template[i])
-                          for i in range(len(template))}
+def get_data(request=None, rule=None, tab=None, args=()):
+    # multiple elements ----------------------------------------------------- #
+    if args and tab:
+        query_values = ', '.join([i for i in args])
+        sql_request = f'SELECT {query_values} FROM {tab}'
+        rv = query_db(sql_request)
+        clean_data = [{args[j]: i[j] for j in range(len(args))} for i in rv]
 
-    if route == 'post_picture':
+    # one element ----------------------------------------------------------- #
+    elif request and tab:
+        rv = {i: j for i, j in request.form.items()}
+        tabs = templates[tab]
+        clean_data = {tabs[i]: convert_data(rv, tabs[i])
+                      for i in range(len(tabs))}
+
+    # specificities --------------------------------------------------------- #
+    if rule == 'post_picture':
         clean_data['filename'] = rename_picture(request, tab)
-    elif route == 'valid_picture':
+    elif rule == 'valid_picture':
         return secure_filename(request.files['picture'].filename)
-    elif route == 'valid_name':
-        return request.form.get('name')
+    elif rule == 'get_tags':
+        clean_data = convert_data(clean_data, rule)
+
     return clean_data
 
 
 def convert_data(data: dict, dependency: str):
     if dependency == 'upload_date':
-        return str(datetime.now())
+        return str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    elif dependency == 'get_tags':
+        rv = {i['name']: query_db(
+            """SELECT COUNT(*) FROM maintag WHERE tag_id = ?""",
+            (i['id'], ), one=True)[0] for i in data}
+        return sorted(rv, key=rv.get, reverse=True)
     elif '_id' in dependency:
         query = f'''SELECT id FROM {pairs[dependency]}
                     WHERE name = ?'''
@@ -110,16 +127,30 @@ def convert_data(data: dict, dependency: str):
         return data.get(dependency)
 
 
+def post_data(data, tab):
+    sql_inject = ', '.join(list('?'*len(data.keys())))
+    sql_request = f"""INSERT INTO {tab}({', '.join(data.keys())})
+                        VALUES({sql_inject})"""
+    return execute_db(sql_request, tuple(data.values()))
+
+
 def uber_validator(request, conditions: list):
-    if 'picture' in conditions:
-        filename = get_data(request, 'valid_picture')
-        if filename == '':
-            return 'missing picture'
-        elif filename[filename.index('.'):] not in ALLOWED_EXTENSIONS:
-            return 'format not allowed'
-    if 'name' in conditions:
-        if get_data(request, 'valid_name') == '':
-            return 'title missing'
+    for i in conditions:
+        if i == 'picture':
+            filename = get_data(request, 'valid_picture')
+            if filename == '':
+                return 'missing picture'
+            elif filename[filename.index('.'):] not in ALLOWED_EXTENSIONS:
+                return 'format not allowed'
+        # FIXME: vérifier si fonctionnement pas aléatoire
+        elif i == 'limit':
+            lenght = len(request.form.get('content')) if request.form.get(
+                'content') else len(request.form.get('description'))
+            if lenght > 200:
+                return 'content too long'
+        else:
+            if not request.form[i]:
+                return f'missing {i}'
 
 
 def rename_picture(data: dict, table: str):
@@ -127,8 +158,8 @@ def rename_picture(data: dict, table: str):
     according to it's table.
 
     Args:
-        data (req): request from POST
-        table (str): name of the table where the path is registered
+        data(req): request from POST
+        table(str): name of the table where the path is registered
 
     Returns:
         str: new name for the picture `'cat-1.jpg'`
@@ -143,11 +174,11 @@ def rename_picture(data: dict, table: str):
 
 
 def extract_tags(string: str, recurse=False):
-    """function use to extract all the # from a comment or description
+    """function use to extract all the  # from a comment or description
 
     Args:
-        string (str): a comment or description that might contain tags
-        recurse (bool, optional): state define in the function,
+        string(str): a comment or description that might contain tags
+        recurse(bool, optional): state define in the function,
         lighten the load of the function. Do not change to True.
 
     Returns:
@@ -156,7 +187,7 @@ def extract_tags(string: str, recurse=False):
     # clean
     if recurse is False:
         allowed = [' ', '#']
-        string = string
+        string = unidecode(string)
         string = ''.join([i for i in string if (i.isalnum() or i in allowed)])
         while '# ' in string:
             string = string.replace('# ', ' ')
@@ -182,8 +213,8 @@ def inject_tags(tags: list, picture_id: int):
     and their dependencies
 
     Args:
-        tags (list): list of tags
-        picture_id (int): picture_id for the join table
+        tags(list): list of tags
+        picture_id(int): picture_id for the join table
     """
     sql_existing = query_db('SELECT id, name FROM tags')
     clean_data = {i[1]: i[0] for i in sql_existing}
@@ -194,6 +225,18 @@ def inject_tags(tags: list, picture_id: int):
             tag_id = execute_db(sql_tags, (i,))
             clean_data[i] = tag_id
         execute_db(sql_jointable, (clean_data[i], picture_id, ))
+
+
+def get_per_occurences(tab: str, ft: str, fk: str, limit: int = None):
+    rv = get_data(tab=tab, args=('id',))
+    print(rv)
+    sql_request = f'SELECT COUNT(*) FROM {ft} WHERE {fk} = ?'
+    occurences = [{i['id']: query_db(
+        sql_request, (i['id'],), one=True)[0]} for i in rv]
+    print(occurences)
+    return
+
+# tags = get_data(rule='get_tags', tab='tags', args=('name', 'id'))
 
 # --------------------------------------------------------------------------- #
 # routes                                                                      #
@@ -218,72 +261,123 @@ def checkIfDeleted():
 
 @ app.context_processor
 def inject_menu():
-    # rv = get_data(tab='categories', args=('id', 'name'))
+    # crée les valeurs accessibles des différentes catégories
     rv = get_data(tab='categories', args=('name',))
-
     return dict(menu=rv)
 
 
 @ app.errorhandler(404)
 def page_not_found(e):
-    # gestion d'une page html personnalisée
+    # note that we set the 404 status explicitly
     return render_template('404.html'), 404
 
 
 @ app.route('/uploads/<name>')
 def download_file(name):
-    # vérifie l'intégrité des fichiers affichés
+    # vérifie l'intégrité des fichiers affichés sur le front
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
 
-# index --------------------------------------------------------------------- #
 
-# TODO:
+# index --------------------------------------------------------------------- #
 
 
 @ app.route('/')
 def index():
     # accéder à la db
     db = get_db()
-    # selectionner les images de la table pictures
-    display_pictures = db.execute("SELECT filename FROM pictures")
+    # selectionner les images de la table pictures et les
+    # trier selon date de téléchargement
+    display_pictures = db.execute(
+        """SELECT filename, name, author
+           FROM pictures
+           ORDER BY upload_date DESC""")
     # retourne des éléments de type sqlite => extraire avec fetchall
     results = display_pictures.fetchall()
-    return render_template('index.html', all_pictures=results)
+    # hashtags & other data ------------------------------------------------- #
+    tags = get_data(rule='get_tags', tab='tags', args=('name', 'id'))
+    get_per_occurences('tags', 'maintag', 'tag_id', 5)
+    get_per_occurences('pictures', 'comments', 'picture_id')
+    # TODO: perfect sizing images in gallery
+
+    return render_template('index.html',
+                           all_pictures=results, best_tags=tags[:5])
+
 
 # search -------------------------------------------------------------------- #
 
-# TODO:
 
-
-@ app.route('/search')
-def search_engine():
-    data = request.args.to_dict()
-    return render_template('index.html')
+@ app.route('/categories/<category_name>')
+def categories(category_name):
+    db = get_db()
+    # l'utilisateur pourrait chercher une catégorie qui n'existe pas
+    # empécher l'ppli de bugger avec un try/except
+    try:
+        sql = """SELECT filename, pictures.name, author FROM pictures
+                 INNER JOIN categories
+                 ON pictures.category_id=categories.id
+                 WHERE categories.name= ?
+                 ORDER BY upload_date DESC"""
+        display_category = db.execute(sql, [category_name])
+        # exécute la requête sql selon la variable catégorie_name
+        # entrée par l'utilisateur
+        results = display_category.fetchall()
+        # comme c'est un élément sql on fetch tous les résultats
+        # resultat sous forme de liste d'un tuple
+        return render_template('index.html', all_pictures=results)
+        # si la catégorie n'existe pas il affiche indexerror
+        # afficher une page non trouvée = erreur 404
+    except IndexError:
+        abort(404)
 
 # show ---------------------------------------------------------------------- #
 
-# TODO:
 
-
-@ app.route("/gallery/<name>", methods=["GET", "POST"])
+@ app.route("/gallery/<name>", methods=["GET", 'POST'])
 def show_pictures(name):
     db = get_db()
     cursor = db.execute(
-        """SELECT upload_date, filename, name, description, category_id, id
+        """SELECT upload_date, filename, author,
+           name, description, category_id, id
            FROM pictures
            WHERE filename LIKE  ?""", ((name+'%'),))
     picture = cursor.fetchone()
     if picture is None:
         abort(404)
     cursor = db.execute(
-        """SELECT comments.upload_date, content, author
-           FROM comments
-           INNER JOIN pictures
-           ON comments.picture_id = pictures.id
-           WHERE pictures.id = ?""", (picture[-1],))
-    comment = cursor.fetchall()
+        """SELECT comments.upload_date, content, comments.author
+           FROM comments INNER JOIN pictures
+           ON comments.picture_id=pictures.id
+           WHERE pictures.id= ?
+           ORDER BY comments.upload_date DESC""", (picture[-1],))
+    comments = cursor.fetchall()
 
-    return render_template("show.html", image=picture, comments=comment)
+    # POST ------------------------------------------------------------------ #
+    maintags = query_db("""SELECT tags.name FROM tags
+                           INNER JOIN maintag ON maintag.id = tags.id
+                           WHERE maintag.picture_id = ? """, (picture[-1],))
+    print(maintags)
+    if request.method == 'POST':
+        error = uber_validator(request, ['author', 'content', 'limit'])
+        if error:
+            return render_template('show.html',
+                                   image=picture,
+                                   comments=comments,
+                                   alert=error,
+                                   picture_tags=maintags)
+        comment = get_data(request, tab='comments')
+        comment['picture_id'] = picture[-1]
+        post_data(comment, 'comments')
+    # TAGS ------------------------------------------------------------------ #
+        tags = extract_tags(comment['content'])
+        if tags:
+            inject_tags(tags, comment['picture_id'])
+
+        return redirect(url_for('show_pictures', name=name))
+
+    return render_template("show.html",
+                           image=picture,
+                           comments=comments,
+                           picture_tags=maintags)
 
 
 # image upload -------------------------------------------------------------- #
@@ -302,23 +396,19 @@ def upload_picture():
     # cas 2: un fichier est envoyé via le formulaire ------------------------ #
     else:
         # vérification selon paramètre(s)
-        jinja_data['error'] = uber_validator(request, ['picture', 'name'])
+        jinja_data['error'] = uber_validator(
+            request, ['picture', 'name', 'author', 'limit'])
         if jinja_data['error']:
             return render_template('upload.html', data=jinja_data)
 
-        # transforme request.form > dict
+        # transforme request.form > dict avec les données de l'image
         data = get_data(request, 'post_picture', 'pictures')
+        jinja_data['picture_data'] = data
 
         # sauvegarde image dans la bdd & sur le serveur
         request.files['picture'].save(
             os.path.join(UPLOAD_FOLDER, data['filename']))
-        sql_inject = ', '.join(list('?'*len(data.keys())))
-        sql_request = f"""INSERT INTO pictures ({', '.join(data.keys())})
-                          VALUES ({sql_inject})"""
-        picture_id = execute_db(sql_request, tuple(data.values()))
-
-        # infos image upload pour jinja
-        jinja_data['picture_data'] = data
+        picture_id = post_data(data, 'pictures')
 
         # récupère & sauvegarde les tags de la description
         jinja_data['tags'] = extract_tags(data['description'])

@@ -1,12 +1,10 @@
-.container
-{
+.container {
     /*width: 1200px;*/
-    margin-left: 10px;
-    padding-left: 10px;
+    margin-left: 0px;
+    padding-left: 0px;
 }
 
-.header
-{
+.header {
     display: flex;
     display: inline-flex;
     align-items: center;
@@ -14,25 +12,25 @@
     /*border: 1px solid red;*/
 }
 
-.logoheader
-{
-    width: 60%;
+.logoheader {
+    width: 70%;
     height: 60px;
+    /*border: 1px solid red;*/
 }
 
-h1
-{
+h1 {
     margin-left: auto;
     margin-right: auto;
+    text-align: center;
+    /*border: 1px solid red;*/
 }
 
-.button_upload_pic
-{
+.button_upload_pic {
     width: 100%;
     height: 50px;
     margin-top: 20px;
     margin-right: 10px;
-    background-color: #B12F2F;
+    background-color: #b12f2f;
     transition: background-color 1s;
     border-radius: 10%;
     font-weight: bold;
@@ -41,48 +39,44 @@ h1
     border: none;
 }
 
-.button_upload_pic:hover
-{
+.button_upload_pic:hover {
     background-color: white;
     color: black;
     border: 1px solid black;
 }
 
-.page_body
-{
+.page_body {
     display: flex;
     display: inline-flex;
     width: 95%;
     margin-bottom: 100px;
 }
 
-.categories
-{
+.categories {
     width: 200px;
-   /* border: solid 1px red; */
+    /* border: solid 1px red; */
 }
 
-.categorie_1, .categorie_2, .categorie_3
-{
+.categorie_1,
+.categorie_2,
+.categorie_3 {
     width: 150px;
     height: 40px;
     margin-right: 20px;
     border-radius: 10%;
 }
-.photobox
-{
-    /*border: solid 1px black;*/
-}
 
-.copyright
-{
+/* .photobox {
+    border: solid 1px black;
+} */
+
+.copyright {
     text-align: center;
     margin-top: 50px;
-   /* border: solid 1px red; */
+    /* border: solid 1px red; */
 }
 
-.footer
-{
+.footer {
     display: flex;
     display: inline-flex;
     align-items: center;
@@ -90,8 +84,7 @@ h1
     height: 50px;
 }
 
-.logo_et_copyright
-{
+.logo_et_copyright {
     display: flex;
     display: inline-flex;
     justify-content: center;
@@ -101,24 +94,21 @@ h1
     /*border: solid 1px red;*/
 }
 
-.logofooter
-{
+.logofooter {
     width: 140px;
     height: 40px;
-   /* border: solid 1px blue; */
+    /* border: solid 1px blue; */
 }
 
-.copyright
-{
+.copyright {
     margin-left: 10px;
     margin-bottom: 40px;
     font-weight: bolder;
 }
 
-.float_button
-{
+.float_button {
     width: 50px;
     height: 50px;
     /* position: fixed; */
-   /* border: solid 1px blue; */
+    /* border: solid 1px blue; */
 }

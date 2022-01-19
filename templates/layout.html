@@ -30,7 +30,7 @@
                 <!-------- LOGO cliquable qui renvoie vers Homepage Ludovic -------->
                 <a href="{{ url_for('index') }}"
                     ><img
-                        src="{{url_for('static', filename = 'img/logo.png')}}"
+                        src='{{ url_for("static", filename = "img/logo.png") }}'
                         class="logoheader"
                 /></a>
 
@@ -38,7 +38,7 @@
                 <h1>Picshare</h1>
 
                 <!------- Bouton en haut à droite du header qui renvoie vers page Alexis (route upload) -------->
-                <form action="{{ url_for('upload_picture') }}">
+                <form action="{{ url_for('upload_picture')}}">
                     <button type="submit" class="button_upload_pic">
                         Add a new pic
                     </button>
@@ -52,21 +52,69 @@
             obtenez alors un texte aléatoire que vous pourrez ensuite utiliser
             librement dans vos maquettes. Le texte généré est du pseudo latin et
             peut donner l'impression d'être du vrai texte.<br />
+            Faux-Texte est une réalisation du studio de création de sites
+            internet indépendant Prélude Prod. Si vous aimez la photographie
+            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
+            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
+            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
+            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
+            pourrez ensuite utiliser librement dans vos maquettes. Le texte
+            généré est du pseudo latin et peut donner l'impression d'être du
+            vrai texte.<br />
+            Faux-Texte est une réalisation du studio de création de sites
+            internet indépendant Prélude Prod. Si vous aimez la photographie
+            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
+            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
+            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
+            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
+            pourrez ensuite utiliser librement dans vos maquettes. Le texte
+            généré est du pseudo latin et peut donner l'impression d'être du
+            vrai texte.<br />
+            Faux-Texte est une réalisation du studio de création de sites
+            internet indépendant Prélude Prod. Si vous aimez la photographie
+            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
+            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
+            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
+            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
+            pourrez ensuite utiliser librement dans vos maquettes. Le texte
+            généré est du pseudo latin et peut donner l'impression d'être du
+            vrai texte.<br />
+            Faux-Texte est une réalisation du studio de création de sites
+            internet indépendant Prélude Prod. Si vous aimez la photographie
+            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
+            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
+            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
+            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
+            pourrez ensuite utiliser librement dans vos maquettes. Le texte
+            généré est du pseudo latin et peut donner l'impression d'être du
+            vrai texte.<br />
+            Faux-Texte est une réalisation du studio de création de sites
+            internet indépendant Prélude Prod. Si vous aimez la photographie
+            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
+            Palaiseau, en Essonne (France).<br /><br />
         </p>
 
         <!--------- CORPS DE LA PAGE avec Sidebar DE gauche, et emplacement photo à droite -------->
         <div class="page_body">
             <!----------------------- SIDEBAR ------------------>
             <div class="categories">
-                {% for i in menu %}
-                <form
-                    action="{{ url_for('show_pictures', name=i.get('name')) }}"
-                >
-                    <button type="submit" class="categorie_1">
-                        {{ i.get('name') }}
+                <form action="onverra">
+                    <button type="submit" class="categorie_1">Cats</button>
+                </form>
+                <br />
+                <form action="onverra">
+                    <button type="submit" class="categorie_2">Dogs</button>
+                </form>
+                <br />
+                <form action="onverra">
+                    <button type="submit" class="categorie_3">People</button>
+                </form>
+                <br />
+                <form action="onverra">
+                    <button type="submit" class="categorie_3">
+                        Backgrounds
                     </button>
                 </form>
-                {% endfor %}
             </div>
 
             <!---------------------- Emplacement photo ------------>
@@ -83,17 +131,19 @@
         <hr />
         <footer class="footer">
             <div class="logo_et_copyright">
-                <img
-                    src="{{url_for('static', filename = 'img/logo.png')}}"
-                    class="logofooter"
-                />
+                <a href="{{ url_for('index') }}"
+                    ><img
+                        src='{{ url_for("static", filename = "img/logo.png") }}'
+                        class="logofooter"
+                /></a>
                 <p class="copyright">
                     Team Tech-Front II © - My Picshare - 2022
                 </p>
             </div>
             <a href="#haut"
                 ><img
-                    src="{{url_for('static', filename = 'img/float_button.webp')}}"
+                    src="{{ url_for('static',
+                filename='img/float_button.webp')}}"
                     class="float_button"
             /></a>
         </footer>

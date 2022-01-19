@@ -1,8 +1,11 @@
-{% extends "layout.html" %} {% block corps%}
+{% block corps%}
 <h1>Upload Page</h1>
 <form method="post" enctype="multipart/form-data">
     <div>
         <input type="file" name="picture" />
+        <label
+            >Auteur: <input type="txt" name="author" value="Jean-Michel"
+        /></label>
         <label>Titre: <input type="txt" name="name" value="cat" /></label>
         <label
             >Description:
@@ -12,7 +15,7 @@
             >Catégorie:
             <select id="categories" name="category">
                 {% for i in data['categories'] %}
-                <option>{{ i }}</option>
+                <option>{{ i["name"] }}</option>
                 {% endfor %}
             </select>
         </label>
