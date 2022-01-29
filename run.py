@@ -72,11 +72,11 @@ def index():
     results = display_pictures.fetchall()
 
     # perso ----------------------------------------------------------------- #
-    jinja_data = {}
-    rv = get_data('pictures')
-    jinja_data['pictures'] = sorted(
-        rv, key=lambda rv: rv['upload_date'], reverse=True)
-    jinja_data['tags'] = getMostPopular('tags', 'maintag', 'tag_id', 5)
+    rv = convertData(get_data('pictures'))
+    jinja_data = {
+        'pictures': sorted(rv, key=lambda rv: rv['upload_date'], reverse=True),
+        'tags': getMostPopular('tags', 'maintag', 'tag_id', 5)
+    }
     # - --------------------------------------------------------------------- #
 
     # TODO: perfect sizing images in gallery
@@ -110,12 +110,13 @@ def categories(category_name):
     # resultat sous forme de liste d'un tuple
 
     # PERSO ----------------------------------------------------------------- #
-    jinja_data = {}
-    rv = get_data('pictures')
-    jinja_data['pictures'] = list(
-        filter(lambda x: (x['category_id'] == category_name), rv))
-    # FIXME: ORDER
-    print(jinja_data)
+    rv = convertData(get_data('pictures'))
+    if rv == []:
+        abort(404)
+    rv_f = list(filter(lambda x: (x['category_id'] == category_name), rv))
+    jinja_data = {
+        'pictures': sorted(rv_f, key=lambda x: x['upload_date'], reverse=True)
+    }
 
     # - --------------------------------------------------------------------- #
     return render_template('index.html', all_pictures=results)
@@ -146,7 +147,7 @@ def show_pictures(name):
 
     # POST ------------------------------------------------------------------ #
     maintags = query_db("""SELECT tags.name FROM tags
-                           INNER JOIN maintag ON maintag.id = tags.id
+                           INNER JOIN maintag ON maintag.tag_id = tags.id
                            WHERE maintag.picture_id = ? """, (picture[-1],))
     if request.method == 'POST':
         error = uberValidator(request, ['author', 'content', 'limit'])
@@ -167,20 +168,16 @@ def show_pictures(name):
         return redirect(url_for('show_pictures', name=name))
 
     # PERSO ----------------------------------------------------------------- #
-    jinja_data = {}
-    rv = get_data('pictures')
-    jinja_data['show'] = next(
-        filter(lambda x: name in x['filename'], rv), None)
-    print(jinja_data)
+    rv = convertData(get_data('pictures'))
+    comments = get_data('comments')
+    jinja_data = {
+        'show': next(filter(lambda x: name in x['filename'], rv), None),
+        'comments':  list(
+            filter(lambda x:
+                   (x['picture_id'] == jinja_data['show']['id']), comments))
+    }
     if jinja_data['show'] is None:
         abort(404)
-
-    # TODO: remove convertData, make it separate and use it ponctualy
-    rv = get_data('comments')
-    print('>>>', rv)
-    jinja_data['comments'] = list(
-        filter(lambda x: (x['picture_id'] == jinja_data['show']['id']), rv))
-    print(jinja_data)
 
     # - --------------------------------------------------------------------- #
     return render_template("show.html",
@@ -194,35 +191,35 @@ def show_pictures(name):
 @ app.route('/upload', methods=['GET', 'POST'])
 def upload_picture():
     # jinja ----------------------------------------------------------------- #
-    jinja_data = {}
-    jinja_data['ok_ext'] = ALLOWED_EXTENSIONS
-    jinja_data['categories'] = get_data('categories', args=('name',))
+    jinja_data = {
+        'ok_ext': ALLOWED_EXTENSIONS,
+        'categories': get_data('categories', args=('name',))
+    }
 
     # cas 1: accès simple à la page ----------------------------------------- #
     if 'picture' not in request.files:
         return render_template('upload.html', data=jinja_data)
 
     # cas 2: un fichier est envoyé via le formulaire ------------------------ #
-    else:
-        # vérification selon paramètre(s)
-        jinja_data['error'] = uberValidator(
-            request, ['picture', 'name', 'author', 'limit'])
-        if jinja_data['error']:
-            return render_template('upload.html', data=jinja_data)
+    # vérification selon paramètre(s)
+    jinja_data['error'] = uberValidator(
+        request, ['picture', 'name', 'author', 'limit'])
+    if jinja_data['error']:
+        return render_template('upload.html', data=jinja_data)
 
-        # transforme request.form > dict avec les données de l'image
-        data = get_data('pictures', request, rules=['upload_date', 'filename'])
-        jinja_data['picture_data'] = data
+    # transforme request.form > dict avec les données de l'image
+    data = get_data('pictures', request, rules=['upload_date', 'filename'])
+    jinja_data['picture_data'] = convertData(data)
 
-        # sauvegarde image dans la bdd & sur le serveur
-        request.files['picture'].save(
-            os.path.join(UPLOAD_FOLDER, data['filename']))
-        picture_id = postData(data, 'pictures')
+    # sauvegarde image dans la bdd & sur le serveur
+    request.files['picture'].save(
+        os.path.join(UPLOAD_FOLDER, data['filename']))
+    picture_id = postData(data, 'pictures')
 
-        # récupère & sauvegarde les tags de la description
-        jinja_data['tags'] = extractTags(data['description'])
-        if jinja_data['tags']:
-            injectTags(jinja_data['tags'], picture_id)
+    # récupère & sauvegarde les tags de la description
+    jinja_data['tags'] = extractTags(data['description'])
+    if jinja_data['tags']:
+        injectTags(jinja_data['tags'], picture_id)
 
     # affichage après upload ------------------------------------------------ #
     return render_template('upload.html', data=jinja_data)

@@ -108,24 +108,24 @@ def get_data(tab: str, request=None, id: list = [], args=(), rules: list = []):
     """
     # multiple elements ----------------------------------------------------- #
     if args:
-        query_values = ', '.join([i for i in args])
+        query_values = ', '.join(list(args))
         sql_request = f'SELECT {query_values} FROM {tab}'
         rv = query_db(sql_request)
         clean_data = [{args[j]: i[j] for j in range(len(args))} for i in rv]
 
     elif id:
         tabs = templates[tab]
-        query_values = ', '.join([i for i in tabs])
+        query_values = ', '.join(list(tabs))
         sql_request = f'SELECT {query_values} FROM {tab} WHERE id = ?'
-        clean_data = [{tabs[i]: convertData(
-            query_db(sql_request, (j,), one=True)[i], tabs[i])
-            for i in range(len(tabs))} for j in id]
+        clean_data = [{tabs[i]:
+                       query_db(sql_request, (j,), one=True)
+                       for i in range(len(tabs))} for j in id]
 
     # one element ----------------------------------------------------------- #
     elif request:
         tabs = templates[tab]
-        rv = [i for i in request.form.values()]
-        clean_data = {tabs[i]: convertData(rv[i], tabs[i])
+        rv = list(request.form.values())
+        clean_data = {tabs[i]: rv[i]
                       for i in range(len(rv))}
 
     # all data from a tab --------------------------------------------------- #
@@ -133,10 +133,8 @@ def get_data(tab: str, request=None, id: list = [], args=(), rules: list = []):
         tabs = tab_titles[tab]
         sql_request = f'SELECT * FROM {tab}'
         rv = query_db(sql_request)
-        clean_data = [{tabs[i]: convertData(rv[j][i], tabs[i]) for i in range(
+        clean_data = [{tabs[i]: rv[j][i] for i in range(
             len(tabs))} for j in range(len(rv))]
-        sorted_data = sorted(
-            clean_data, key=lambda clean_data: clean_data['upload_date'])
 
     # specificities --------------------------------------------------------- #
     if 'upload_date' in rules:
@@ -149,28 +147,27 @@ def get_data(tab: str, request=None, id: list = [], args=(), rules: list = []):
     return clean_data
 
 
-def convertData(data, dependency: str):
+def convertData(data):
     """use this to convert some data, for the moment convert id to their
-    equivalent.
+    equivalent if called.
 
     Args:
         data (any): the original data before conversion
-        dependency (str): the key, tab name associated in order to know if the
-        data need to be converted
-
-    Returns:
-        (any): the original data or a converted value
     """
-    if '_id' in dependency and str(data).isalpha():
-        query = f'''SELECT id FROM {pairs[dependency]}
-                    WHERE name = ?'''
-        return query_db(query, (data,), one=True)[0]
-    elif '_id' in dependency and str(data).isnumeric():
-        query = f'''SELECT name FROM {pairs[dependency]}
-                    WHERE id = ?'''
-        return query_db(query, (data,), one=True)[0]
-    else:
-        return data
+    liste = data if isinstance(data, list) else [data]
+    for i in liste:
+        for j in i:
+            if '_id' in j:
+                if str(i[j]).isalpha():
+                    query = f'''SELECT id FROM {pairs[j]}
+                            WHERE name = ?'''
+                    i[j] = query_db(query, (i[j],), one=True)[0]
+                elif str(i[j]).isnumeric():
+                    query = f'''SELECT name FROM {pairs[j]}
+                            WHERE id = ?'''
+                    i[j] = query_db(query, (i[j],), one=True)[0]
+
+    return data if isinstance(data, dict) else liste
 
 
 def postData(data: dict, tab: str):
@@ -211,9 +208,8 @@ def uberValidator(request, conditions: list):
                 'content') else len(request.form.get('description'))
             if lenght > 200:
                 return 'content too long'
-        else:
-            if not request.form[i]:
-                return f'missing {i}'
+        elif not request.form[i]:
+            return f'missing {i}'
 
 
 def renamePicture(data: dict, table: str):
@@ -259,18 +255,14 @@ def extractTags(string: str, recurse=False):
         while string[-1] == '#':
             string = string[:-1]
 
-    # recursion ------------------------------------------------------------- #
-    # base case ------------------------------------------------------------- #
     if not string or '#' not in string:
         return []
-    # recursive case -------------------------------------------------------- #
+    hash_pos = string.index('#')
+    if ' ' in string[hash_pos:]:
+        tag = string[hash_pos:string.index(' ', hash_pos)]
     else:
-        hash_pos = string.index('#')
-        if ' ' in string[hash_pos:]:
-            tag = string[hash_pos:string.index(' ', hash_pos)]
-        else:
-            tag = string[hash_pos:]
-        return [tag[1:]] + extractTags(string[hash_pos+1:], recurse=True)
+        tag = string[hash_pos:]
+    return [tag[1:]] + extractTags(string[hash_pos+1:], recurse=True)
 
 
 def injectTags(tags: list, picture_id: int):
