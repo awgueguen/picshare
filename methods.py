@@ -86,7 +86,10 @@ def execute_db(query: str, args=()):
     return cur.lastrowid
 
 
-def get_data(tab: str, request=None, id: list = [], args=(), rules: list = []):
+def get_data(
+        tab: str, request=None, id: list = [],
+        args=(),
+        rules: list = []):
     """use this function if you need to get more complexe set of data from a
     request or by using fraction of informations
      except `rules` and `tab`, only use one of the other parameters.
