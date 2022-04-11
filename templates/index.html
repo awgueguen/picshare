@@ -1,12 +1,9 @@
 {% extends 'layout.html' %} {% block corps %}
 <p>
-    {% for picture in all_pictures %}
-    <a
-        href="{{url_for('show_pictures', name=picture[0][:picture[0].index('.')])}}"
-    >
-        <img src="{{ url_for('uploads', filename=picture[0]) }}" height="200"
-    /></a>
-    <!-- les éléments à partir de l'index 1 correspondent au titre et au nom d'auteur -->
-    {% for elem in picture[1:] %} {{elem}} {% endfor %} {% endfor %}
+  {% for picture in data.pictures %}
+  <a href="{{url_for('show_pictures', id=picture.id)}}">
+    <img src="{{ url_for('uploads', filename=picture.filename) }}" height="200"
+  /></a>
+  {% endfor %}
 </p>
 {% endblock %}

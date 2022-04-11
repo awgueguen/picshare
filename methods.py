@@ -30,7 +30,8 @@ tab_titles = {
     'pictures': ['id', 'upload_date', 'filename', 'author', 'name',
                  'description', 'category_id'],
     'comments': ['id', 'upload_date', 'author', 'content', 'picture_id'],
-    'tags': ['id', 'name']
+    'tags': ['id', 'name'],
+    'maintag': ['id', 'tag_id', 'picture_id']
 }
 pairs = {'category_id': 'categories',
          "picture_id": 'pictures',
@@ -86,7 +87,7 @@ def execute_db(query: str, args=()):
     return cur.lastrowid
 
 
-def get_data(tab: str, request=None, id: list = [], args=(), rules: list = []):
+def get_data(tab: str, request=None, id: int = [], args=(), rules: list = []):
     """use this function if you need to get more complexe set of data from a
     request or by using fraction of informations
      except `rules` and `tab`, only use one of the other parameters.
@@ -117,9 +118,10 @@ def get_data(tab: str, request=None, id: list = [], args=(), rules: list = []):
         tabs = templates[tab]
         query_values = ', '.join(list(tabs))
         sql_request = f'SELECT {query_values} FROM {tab} WHERE id = ?'
-        clean_data = [{tabs[i]:
-                       query_db(sql_request, (j,), one=True)
-                       for i in range(len(tabs))} for j in id]
+        # clean_data = [{tabs[i]:
+        #                query_db(sql_request, (j,), one=True)
+        #                for i in range(len(tabs))} for j in id]
+        clean_data = query_db(sql_request, (id,), one=True)
 
     # one element ----------------------------------------------------------- #
     elif request:

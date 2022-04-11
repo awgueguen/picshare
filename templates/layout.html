@@ -1,157 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" type="text/css" href="styles.css" />
-        <link
-            href="{{url_for('static', filename = 'css/style.css')}}"
-            rel="stylesheet"
-        />
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link
+      href="{{url_for('static', filename = 'css/style.css')}}"
+      rel="stylesheet"
+    />
 
-        <!--- Boostrap, définition CDN : C'est l'acronyme de « Content delivery network » ; c'est un réseau
-          de serveurs qui met à disposition des bibliothèques. Il devient ainsi inutile de les prévoir
-          sur son propre serveur, il suffit de « pointer » vers eux. ---->
+    <title>Picshare</title>
+  </head>
+  <body class="container">
+    <!---------- ci-dessous, c'est pour le lien de retour vers le haut : -->
+    <a name="haut"></a>
 
-        <!--- Pour une utilisation basique de Bootstrap, il suffit de copier dans la feuille html
-          les 3 CDN. Ci-dessous la première ligne; la 2ème et la 3ème se trouvant au bas de cette page -->
-        <!--- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous"> --->
+    <!------------------------------- HEADER --------------------------------->
+    <header>
+      <div class="header">
+        <!-------- LOGO cliquable qui renvoie vers Homepage Ludovic -------->
+        <a href="{{ url_for('index') }}"
+          ><img
+            src='{{ url_for("static", filename = "img/logo.png") }}'
+            class="logoheader"
+        /></a>
 
-        <title>Picshare</title>
-    </head>
-    <body class="container">
-        <!---------- ci-dessous, c'est pour le lien de retour vers le haut : -->
-        <a name="haut"></a>
+        <!------- Titre Principal ---->
+        <h1>Picshare</h1>
 
-        <!------------------------------- HEADER --------------------------------->
-        <header>
-            <div class="header">
-                <!-------- LOGO cliquable qui renvoie vers Homepage Ludovic -------->
-                <a href="{{ url_for('index') }}"
-                    ><img
-                        src='{{ url_for("static", filename = "img/logo.png") }}'
-                        class="logoheader"
-                /></a>
+        <!------- Bouton en haut à droite du header qui renvoie vers page Alexis (route upload) -------->
+        <form action="{{ url_for('upload_picture')}}">
+          <button type="submit" class="button_upload_pic">Add a new pic</button>
+        </form>
+      </div>
+    </header>
 
-                <!------- Titre Principal ---->
-                <h1>Picshare</h1>
-
-                <!------- Bouton en haut à droite du header qui renvoie vers page Alexis (route upload) -------->
-                <form action="{{ url_for('upload_picture')}}">
-                    <button type="submit" class="button_upload_pic">
-                        Add a new pic
-                    </button>
-                </form>
-            </div>
-        </header>
-
-        <p>
-            Lorem Ipsum est un générateur de faux textes aléatoires. Vous
-            choisissez le nombre de paragraphes, de mots ou de listes. Vous
-            obtenez alors un texte aléatoire que vous pourrez ensuite utiliser
-            librement dans vos maquettes. Le texte généré est du pseudo latin et
-            peut donner l'impression d'être du vrai texte.<br />
-            Faux-Texte est une réalisation du studio de création de sites
-            internet indépendant Prélude Prod. Si vous aimez la photographie
-            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
-            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
-            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
-            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
-            pourrez ensuite utiliser librement dans vos maquettes. Le texte
-            généré est du pseudo latin et peut donner l'impression d'être du
-            vrai texte.<br />
-            Faux-Texte est une réalisation du studio de création de sites
-            internet indépendant Prélude Prod. Si vous aimez la photographie
-            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
-            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
-            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
-            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
-            pourrez ensuite utiliser librement dans vos maquettes. Le texte
-            généré est du pseudo latin et peut donner l'impression d'être du
-            vrai texte.<br />
-            Faux-Texte est une réalisation du studio de création de sites
-            internet indépendant Prélude Prod. Si vous aimez la photographie
-            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
-            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
-            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
-            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
-            pourrez ensuite utiliser librement dans vos maquettes. Le texte
-            généré est du pseudo latin et peut donner l'impression d'être du
-            vrai texte.<br />
-            Faux-Texte est une réalisation du studio de création de sites
-            internet indépendant Prélude Prod. Si vous aimez la photographie
-            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
-            Palaiseau, en Essonne (France). Lorem Ipsum est un générateur de
-            faux textes aléatoires. Vous choisissez le nombre de paragraphes, de
-            mots ou de listes. Vous obtenez alors un texte aléatoire que vous
-            pourrez ensuite utiliser librement dans vos maquettes. Le texte
-            généré est du pseudo latin et peut donner l'impression d'être du
-            vrai texte.<br />
-            Faux-Texte est une réalisation du studio de création de sites
-            internet indépendant Prélude Prod. Si vous aimez la photographie
-            d'art et l'esprit zen, jetez un œil sur le site de ce photographe à
-            Palaiseau, en Essonne (France).<br /><br />
-        </p>
-
-        <!--------- CORPS DE LA PAGE avec Sidebar DE gauche, et emplacement photo à droite -------->
-        <div class="page_body">
-            <!----------------------- SIDEBAR ------------------>
+    <!--------- CORPS DE LA PAGE avec Sidebar DE gauche, et emplacement photo à droite -------->
+    <div class="page_body">
+      <!----------------------- SIDEBAR ------------------>
+      <div class="categories">
+          {% for item in menu %} 
             <div class="categories">
-                <form action="onverra">
-                    <button type="submit" class="categorie_1">Cats</button>
+                <form action="{{ url_for('categories', category_name=item.name) }}">
+                <button type="submit" class="categorie_1">{{item.name}}</button>
                 </form>
-                <br />
-                <form action="onverra">
-                    <button type="submit" class="categorie_2">Dogs</button>
-                </form>
-                <br />
-                <form action="onverra">
-                    <button type="submit" class="categorie_3">People</button>
-                </form>
-                <br />
-                <form action="onverra">
-                    <button type="submit" class="categorie_3">
-                        Backgrounds
-                    </button>
-                </form>
-            </div>
+          {% endfor %}
+      </div>
+      <!---------------------- Emplacement photo ------------>
+      {% block corps %}
+      <div class="photobox">
+        <p>endroit ou s'affichera pic avec description date etc à côté</p>
+      </div>
+      {% endblock %}
+    </div>
 
-            <!---------------------- Emplacement photo ------------>
-            {% block corps %}
-            <div class="photobox">
-                <p>
-                    endroit ou s'affichera pic avec description date etc à côté
-                </p>
-            </div>
-            {% endblock %}
-        </div>
-
-        <!-------------------------------- FOOTER -------------------------------->
-        <hr />
-        <footer class="footer">
-            <div class="logo_et_copyright">
-                <a href="{{ url_for('index') }}"
-                    ><img
-                        src='{{ url_for("static", filename = "img/logo.png") }}'
-                        class="logofooter"
-                /></a>
-                <p class="copyright">
-                    Team Tech-Front II © - My Picshare - 2022
-                </p>
-            </div>
-            <a href="#haut"
-                ><img
-                    src="{{ url_for('static',
+    <!-------------------------------- FOOTER -------------------------------->
+    <hr />
+    <footer class="footer">
+      <div class="logo_et_copyright">
+        <a href="{{ url_for('index') }}"
+          ><img
+            src='{{ url_for("static", filename = "img/logo.png") }}'
+            class="logofooter"
+        /></a>
+        <p class="copyright">Team Tech-Front II © - My Picshare - 2022</p>
+      </div>
+      <a href="#haut"
+        ><img
+          src="{{ url_for('static',
                 filename='img/float_button.webp')}}"
-                    class="float_button"
-            /></a>
-        </footer>
-        <!------ Ci-dessous, les 2me et 3ème lignes à copiter coller au bas de votre feuille html : 
-
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
-
-  ------------------->
-    </body>
+          class="float_button"
+      /></a>
+    </footer>
+  
+  </body>
 </html>

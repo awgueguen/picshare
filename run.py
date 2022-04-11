@@ -1,5 +1,5 @@
 import os
-from flask import (Flask, g, render_template, request, flash, abort,
+from flask import (Flask, g, render_template, request, abort,
                    redirect, send_from_directory, url_for)
 from methods import *
 
@@ -24,7 +24,7 @@ app.add_url_rule('/uploads/<path:filename>', endpoint='uploads',
 # jinja routes -------------------------------------------------------------- #
 
 
-@ app.before_request
+@app.before_request
 def checkIfDeleted():
     # check if a picture have been deleted manualy. If so, delete the
     # corresponding entry in the database.
@@ -35,7 +35,7 @@ def checkIfDeleted():
             execute_db(sql_request, (i["filename"],))
 
 
-@ app.context_processor
+@app.context_processor
 def inject_menu():
     # create a menu variable accessible in order to get the list of categories
     # from anywhere
@@ -43,13 +43,13 @@ def inject_menu():
     return dict(menu=rv)
 
 
-@ app.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(e):
     # route to give an explicit action to the 404 error
     return render_template('404.html'), 404
 
 
-@ app.route('/uploads/<name>')
+@app.route('/uploads/<name>')
 def download_file(name):
     # check if the image shown when accessing a route is not malicsious
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
@@ -57,133 +57,104 @@ def download_file(name):
 
 # index --------------------------------------------------------------------- #
 
-@ app.route('/')
+@app.route('/')
 def index():
-    # CODE LUDOVIC ---------------------------------------------------------- #
-    # accéder à la db
-    db = get_db()
-    # selectionner les images de la table pictures et les
-    # trier selon date de téléchargement
-    display_pictures = db.execute(
-        """SELECT filename, name, author
-           FROM pictures
-           ORDER BY upload_date DESC""")
-    # retourne des éléments de type sqlite => extraire avec fetchall
-    results = display_pictures.fetchall()
-
-    # perso ----------------------------------------------------------------- #
+    # route to the index page
     rv = convertData(get_data('pictures'))
     jinja_data = {
         'pictures': sorted(rv, key=lambda rv: rv['upload_date'], reverse=True),
         'tags': getMostPopular('tags', 'maintag', 'tag_id', 5)
     }
-    # - --------------------------------------------------------------------- #
 
+    print(jinja_data)
+    # - --------------------------------------------------------------------- #
     # TODO: perfect sizing images in gallery
 
-    return render_template('index.html', all_pictures=results)
+    return render_template('index.html', data=jinja_data)
 
 
-# search -------------------------------------------------------------------- #
+# categories ---------------------------------------------------------------- #
 
-
-@ app.route('/categories/<category_name>')
+@app.route('/categories/<category_name>')
 def categories(category_name):
-    db = get_db()
-    # CODE LUDOVIC ---------------------------------------------------------- #
-    # l'utilisateur pourrait chercher une catégorie qui n'existe pas
-    # empécher l'ppli de bugger avec un try/except
-    sql = """SELECT filename, pictures.name, author FROM pictures
-                INNER JOIN categories
-                ON pictures.category_id = categories.id
-                WHERE categories.name = ?
-                ORDER BY upload_date DESC"""
-    display_category = db.execute(sql, [category_name])
-    # exécute la requête sql selon la variable catégorie_name
-    # entrée par l'utilisateur
-    results = display_category.fetchall()
-    # si la catégorie n'existe pas il affiche indexerror
-    # afficher une page non trouvée = erreur 404
-    if results == []:
-        abort(404)
-    # comme c'est un élément sql on fetch tous les résultats
-    # resultat sous forme de liste d'un tuple
 
-    # PERSO ----------------------------------------------------------------- #
     rv = convertData(get_data('pictures'))
-    if rv == []:
+    rv_filtered = list(
+        filter(lambda x: (x['category_id'] == category_name), rv))
+    if rv_filtered == []:
         abort(404)
-    rv_f = list(filter(lambda x: (x['category_id'] == category_name), rv))
     jinja_data = {
-        'pictures': sorted(rv_f, key=lambda x: x['upload_date'], reverse=True)
+        'pictures': sorted(rv_filtered, key=lambda x: x['upload_date'],
+                           reverse=True)
     }
 
     # - --------------------------------------------------------------------- #
-    return render_template('index.html', all_pictures=results)
+    return render_template('index.html',  data=jinja_data)
 
 
 # show ---------------------------------------------------------------------- #
 
+@app.route("/gallery/<id>", methods=["GET", 'POST'])
+def show_pictures(id):
 
-@ app.route("/gallery/<name>", methods=["GET", 'POST'])
-def show_pictures(name):
-    # CODE MIX -------------------------------------------------------------- #
-    db = get_db()
-    cursor = db.execute(
-        """SELECT upload_date, filename, author,
-           name, description, category_id, id
-           FROM pictures
-           WHERE filename LIKE  ?""", ((name+'%'),))
-    picture = cursor.fetchone()
-    if picture is None:
+    picture_data = get_data('pictures', id=list(id))
+    if picture_data is None:
         abort(404)
-    cursor = db.execute(
+    print(picture_data)
+
+    comments_data = query_db(
         """SELECT comments.upload_date, content, comments.author
            FROM comments INNER JOIN pictures
            ON comments.picture_id = pictures.id
            WHERE pictures.id = ?
-           ORDER BY comments.upload_date DESC""", (picture[-1],))
-    comments = cursor.fetchall()
+           ORDER BY comments.upload_date DESC""", (id))
+
+    tags_data = query_db("""SELECT tags.name FROM tags
+                           INNER JOIN maintag ON maintag.tag_id = tags.id
+                           WHERE maintag.picture_id = ? """, (id))
 
     # POST ------------------------------------------------------------------ #
-    maintags = query_db("""SELECT tags.name FROM tags
-                           INNER JOIN maintag ON maintag.tag_id = tags.id
-                           WHERE maintag.picture_id = ? """, (picture[-1],))
     if request.method == 'POST':
         error = uberValidator(request, ['author', 'content', 'limit'])
         if error:
             return render_template('show.html',
-                                   image=picture,
-                                   comments=comments,
+                                   image=picture_data,
+                                   comments=comments_data,
                                    alert=error,
-                                   picture_tags=maintags)
+                                   picture_tags=tags_data)
         comment = get_data('comments', request, rules=['upload_date'])
-        comment['picture_id'] = picture[-1]
+        comment['picture_id'] = id
         postData(comment, 'comments')
     # TAGS ------------------------------------------------------------------ #
         tags = extractTags(comment['content'])
         if tags:
             injectTags(tags, comment['picture_id'])
 
-        return redirect(url_for('show_pictures', name=name))
+        return redirect(url_for('show_pictures', id=id))
 
     # PERSO ----------------------------------------------------------------- #
-    rv = convertData(get_data('pictures'))
+    rv = get_data('pictures', id=[1])
     comments = get_data('comments')
+    tags = get_data('tags')
     jinja_data = {
-        'show': next(filter(lambda x: name in x['filename'], rv), None),
+        'show': rv,
         'comments':  list(
             filter(lambda x:
-                   (x['picture_id'] == jinja_data['show']['id']), comments))
+                   (x['id'] == id), comments)),
+        # 'tags': list(
+        #     filter(lambda x:
+        #            (x['picture_id'] == id), tags)),
     }
+
+    # - --------------------------------------------------------------------- #
     if jinja_data['show'] is None:
         abort(404)
 
     # - --------------------------------------------------------------------- #
     return render_template("show.html",
-                           image=picture,
-                           comments=comments,
-                           picture_tags=maintags)
+                           image=picture_data,
+                           comments=comments_data,
+                           picture_tags=tags_data)
 
 
 # image upload -------------------------------------------------------------- #
