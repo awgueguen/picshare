@@ -1,4 +1,6 @@
 import sqlite3
+import random
+import string
 
 DATABASE = 'app.db'
 db = sqlite3.connect(DATABASE)
@@ -7,89 +9,130 @@ cursor = db.cursor()
 
 # Creation of table "categories".
 # If it existed already, we delete the table and create a new one
-cursor.execute('DROP TABLE IF EXISTS categories')
-cursor.execute("""CREATE TABLE categories (
+cursor.execute('DROP TABLE IF EXISTS category')
+cursor.execute("""CREATE TABLE category (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             name VARCHAR(200) NOT NULL)""")
 
 
-cursor.execute('DROP TABLE IF EXISTS pictures')
-cursor.execute("""CREATE TABLE pictures (
+cursor.execute('DROP TABLE IF EXISTS picture')
+cursor.execute("""CREATE TABLE picture (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             upload_date TEXT NOT NULL,
                             filename VARCHAR(200) NOT NULL,
-                            author VARCHAR(20) NOT NULL,
                             name VARCHAR(20) NOT NULL,
                             description VARCHAR(200) NOT NULL,
+                            user_id INTEGER NOT NULL,
                             category_id INTEGER NOT NULL,
-                                CONSTRAINT fk_categories
+                            CONSTRAINT fk_user
+                                FOREIGN KEY (user_id)
+                                REFERENCES user(id)
+                            CONSTRAINT fk_categories
                                 FOREIGN KEY (category_id)
-                                REFERENCES categories(id))""")
+                                REFERENCES category(id))""")
 
-cursor.execute('DROP TABLE IF EXISTS comments')
-cursor.execute("""CREATE TABLE comments (
+cursor.execute('DROP TABLE IF EXISTS comment')
+cursor.execute("""CREATE TABLE comment (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             upload_date TEXT NOT NULL,
-                            author VARCHAR(20) NOT NULL,
                             content VARCHAR(100) NOT NULL,
+                            user_id INTEGER NOT NULL,
                             picture_id INTEGER NOT NULL,
-                                CONSTRAINT fk_pictures
+                            CONSTRAINT fk_user
+                                FOREIGN KEY (user_id)
+                                REFERENCES user(id)
+                            CONSTRAINT fk_picture
                                 FOREIGN KEY (picture_id)
-                                REFERENCES pictures(id))""")
+                                REFERENCES picture(id))""")
 
 
-cursor.execute('DROP TABLE IF EXISTS tags')
-cursor.execute("""CREATE TABLE tags (
+cursor.execute('DROP TABLE IF EXISTS tag')
+cursor.execute("""CREATE TABLE tag (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             name VARCHAR(200) NOT NULL)""")
 
-cursor.execute('DROP TABLE IF EXISTS maintag')
-cursor.execute("""CREATE TABLE maintag(
+
+cursor.execute('DROP TABLE IF EXISTS tagtopicture')
+cursor.execute("""CREATE TABLE tagtopicture(
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            tag_id VARCHAR(200) NOT NULL,
-                            picture_id VARCHAR(200) NOT NULL,
-                            CONSTRAINT fk_tags
+                            tag_id INTEGER NOT NULL,
+                            picture_id INTEGER NOT NULL,
+                            CONSTRAINT fk_tag
                                 FOREIGN KEY (tag_id)
-                                REFERENCES tags(id),
-                            CONSTRAINT fk_pictures
+                                REFERENCES tag(id),
+                            CONSTRAINT fk_picture
                                 FOREIGN KEY (picture_id)
-                                REFERENCES pictures(id))""")
+                                REFERENCES picture(id))""")
+
+
+cursor.execute('DROP TABLE IF EXISTS user')
+cursor.execute("""CREATE TABLE user (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            name VARCHAR(20) NOT NULL)""")
+
 
 # --------------------------------------------------------------------------- #
 # dummy data creation                                                         #
 # --------------------------------------------------------------------------- #
 
+
+def randomString():
+    letters = string.ascii_letters
+    rv = ''.join(random.choice(letters) for i in range(8))
+    return rv
+
+
+# users --------------------------------------------------------------------- #
+for name in ['Jean', 'Michou', 'Renaud', 'Marie']:
+    cursor.execute("INSERT INTO user (name) VALUES (?)", (name,))
+
+
 # categories ---------------------------------------------------------------- #
 for name in ["Cats", "Dogs", "People", "Backgrounds"]:
-    cursor.execute("INSERT INTO categories (name) VALUES (?)", (name,))
+    cursor.execute("INSERT INTO category (name) VALUES (?)", (name,))
 
-# pictures ------------------------------------------------------------------ #
+# picture ------------------------------------------------------------------ #
 for data in [
-        ("2022-08-12 10:12:21", "cat-1.jpg", "Jean", "Cat", "Hello", 1),
-        ("2022-08-10 10:12:21", "dog-1.jpg", "Michel", "Dog", "Hello", 2),
-        ("2022-07-12 10:12:21", "guy-1.jpg", "Louise", "Guy", "Hello", 3),
-        ("2021-08-12 10:12:21", "woman-1.jpg", "Marc", "Woman", "Hello", 3), ]:
-    cursor.execute("""INSERT INTO pictures
-                        (upload_date, filename, author,
-                        name, description, category_id)
+        ("2022-08-12 10:12:21", "cat-1.jpg",  "Cat", "Hello", 1, 1),
+        ("2022-08-10 10:12:21", "dog-1.jpg", "Dog", "Hello", 2,  2),
+        ("2022-07-12 10:12:21", "guy-1.jpg", "Guy", "Hello", 3, 3),
+        ("2021-08-12 10:12:21", "woman-1.jpg", "Woman", "Hello", 4, 3), ]:
+    cursor.execute("""INSERT INTO picture
+                        (upload_date, filename,
+                        name, description, user_id, category_id)
                         VALUES (?, ?, ?, ?, ?, ?)""", data)
 
-# comments ------------------------------------------------------------------ #
-for data in [
-        ("2022-08-12 10:12:21", "foreign dog", "you rock", 1),
-        ("2022-08-10 10:12:21", "false cat", "you cat sucks", 1), ]:
-    cursor.execute("""INSERT INTO comments
-                        (upload_date, author, content, picture_id)
+# comment ------------------------------------------------------------------ #
+comments = []
+for i in range(20):
+    comments.append(
+        (f'2021-01-01 {random.randint(10, 23)}:{random.randint(10,46)}:00',
+         f'commentaire-{randomString()*2}', random.randint(1, 4),
+         random.randint(1, 4),))
+
+for data in comments:
+    cursor.execute("""INSERT INTO comment
+                        (upload_date, content, user_id, picture_id)
                         VALUES (?, ?, ?, ?)""", data)
 
-# tags ---------------------------------------------------------------------- #
-for name in ["cute", "what", "velvet", "nose"]:
-    cursor.execute("INSERT INTO tags (name) VALUES (?)", (name,))
+
+# tag ---------------------------------------------------------------------- #
+tags = ["photographie", "cinématographique", "poster", "web",
+        "cinema", "random", "else"]
+
+for i in range(15):
+    tags += [f'photographer-{randomString()}']
+
+for tag in tags:
+    cursor.execute("INSERT INTO tag (name) VALUES (?)", (tag,))
+
 
 # maintag ------------------------------------------------------------------- #
-for data in [(1, 1), (1, 2), (2, 4), (3, 1), (4, 1)]:
+for i in range(40):
     cursor.execute(
-        "INSERT INTO maintag (tag_id, picture_id) VALUES (?, ?)", data)
+        "INSERT INTO tagtopicture (tag_id, picture_id) VALUES (?, ?)",
+        (random.randint(1, 22), random.randint(1, 4),))
+
 
 # We save our changes into the database file
 db.commit()

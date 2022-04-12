@@ -1,9 +1,22 @@
 {% extends 'layout.html' %} {% block corps %}
-<p>
-  {% for picture in data.pictures %}
-  <a href="{{url_for('show_pictures', id=picture.id)}}">
-    <img src="{{ url_for('uploads', filename=picture.filename) }}" height="200"
-  /></a>
+
+<main id="index">
+  {% for picture in pictures %}
+  <div class="image-container">
+    <h3>
+      <a
+        href="{{ url_for('show_picture',  name=picture.filename[:picture.filename.index('.')]) }}"
+      >
+        {{ picture.name }}
+      </a>
+    </h3>
+    <img src="{{ url_for('uploads', filename=picture.filename) }}" />
+    <h5>
+      @{{ picture.user_id }} :
+      <span class="image-container--desc">{{picture.description}}</span>
+    </h5>
+  </div>
   {% endfor %}
-</p>
+</main>
+
 {% endblock %}

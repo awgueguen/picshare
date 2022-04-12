@@ -111,12 +111,14 @@ def get_data(
         (list, dict): return the set of data requested
     """
     # multiple elements ----------------------------------------------------- #
+    # ? what use
     if args:
         query_values = ', '.join(list(args))
         sql_request = f'SELECT {query_values} FROM {tab}'
         rv = query_db(sql_request)
         clean_data = [{args[j]: i[j] for j in range(len(args))} for i in rv]
 
+    # * ok
     elif id:
         tabs = templates[tab]
         query_values = ', '.join(list(tabs))

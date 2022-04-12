@@ -4,75 +4,32 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" type="text/css" href="styles.css" />
     <link
       href="{{url_for('static', filename = 'css/style.css')}}"
       rel="stylesheet"
     />
-
     <title>Picshare</title>
   </head>
-  <body class="container">
-    <!---------- ci-dessous, c'est pour le lien de retour vers le haut : -->
-    <a name="haut"></a>
-
-    <!------------------------------- HEADER --------------------------------->
+  <body>
     <header>
-      <div class="header">
-        <!-------- LOGO cliquable qui renvoie vers Homepage Ludovic -------->
-        <a href="{{ url_for('index') }}"
-          ><img
-            src='{{ url_for("static", filename = "img/logo.png") }}'
-            class="logoheader"
-        /></a>
-
-        <!------- Titre Principal ---->
-        <h1>Picshare</h1>
-
-        <!------- Bouton en haut à droite du header qui renvoie vers page Alexis (route upload) -------->
-        <form action="{{ url_for('upload_picture')}}">
-          <button type="submit" class="button_upload_pic">Add a new pic</button>
-        </form>
-      </div>
+      <nav>
+        <a href="{{ url_for('index') }}" class="tab">Picshare</a>
+        {% for i in menu %} {% if i == request.url.rsplit('/', 1)[-1] %}
+        <a href="{{ url_for('categories', name=i) }}" class="active-tab"
+          >{{ i }}
+        </a>
+        {% else %}
+        <a href="{{ url_for('categories', name=i) }}" class="tab"> {{ i }} </a>
+        {% endif %} {% endfor %}
+      </nav>
     </header>
 
-    <!--------- CORPS DE LA PAGE avec Sidebar DE gauche, et emplacement photo à droite -------->
-    <div class="page_body">
-      <!----------------------- SIDEBAR ------------------>
-      <div class="categories">
-          {% for item in menu %} 
-            <div class="categories">
-                <form action="{{ url_for('categories', category_name=item.name) }}">
-                <button type="submit" class="categorie_1">{{item.name}}</button>
-                </form>
-          {% endfor %}
-      </div>
-      <!---------------------- Emplacement photo ------------>
-      {% block corps %}
-      <div class="photobox">
-        <p>endroit ou s'affichera pic avec description date etc à côté</p>
-      </div>
-      {% endblock %}
-    </div>
+    {% block corps %} {% endblock %}
 
-    <!-------------------------------- FOOTER -------------------------------->
-    <hr />
-    <footer class="footer">
-      <div class="logo_et_copyright">
-        <a href="{{ url_for('index') }}"
-          ><img
-            src='{{ url_for("static", filename = "img/logo.png") }}'
-            class="logofooter"
-        /></a>
-        <p class="copyright">Team Tech-Front II © - My Picshare - 2022</p>
-      </div>
-      <a href="#haut"
-        ><img
-          src="{{ url_for('static',
-                filename='img/float_button.webp')}}"
-          class="float_button"
-      /></a>
+    <footer>
+      <a href="{{ url_for('index') }}">Picshare</a>
+      <a href="">About</a>
+      <a href="">Contact</a>
     </footer>
-  
   </body>
 </html>

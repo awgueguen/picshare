@@ -1,33 +1,9 @@
 {% extends 'layout.html' %} {% block corps %}
-<!------ titre de l'image ---->
-{{ image[1] }} {{ image[0] }}
-<div>
-    <img src="{{ url_for('uploads', filename=image[1]) }}" width="200px" />
-</div>
-<div>
-    {% for tag in picture_tags %} {{ tag[0] }} {% endfor %} {% for comment in
-    comments %}
-    <p>
-        {{ comment[0] }} <br />
-        {{ comment[1] }} <br />
-        {{ comment[2] }} <br />
-    </p>
-    {% endfor %}
-</div>
-<div>
-    <h3>send comment</h3>
-    <form method="post" enctype="multipart/form-data">
-        <label>pseudo: <input type="txt" name="author" value="pseudo" /></label>
-        <label
-            >commentaire:
-            <textarea name="content">max character 200 #tags</textarea>
-        </label>
-        <input type="submit" value="upload" />
-    </form>
-    {% if alert %}
-    <p>{{ alert }}</p>
-    {% else %}
-    <p>no error</p>
-    {% endif %}
-</div>
+
+<main>
+  <div>
+    <img src="{{ url_for('uploads', filename=picture.filename) }}" />
+  </div>
+</main>
+
 {% endblock %}
