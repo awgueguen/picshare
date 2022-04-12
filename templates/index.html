@@ -2,19 +2,28 @@
 
 <main id="index">
   {% for picture in pictures %}
-  <div class="image-container">
-    <h3>
-      <a
-        href="{{ url_for('show_picture',  name=picture.filename[:picture.filename.index('.')]) }}"
-      >
-        {{ picture.name }}
-      </a>
-    </h3>
-    <img src="{{ url_for('uploads', filename=picture.filename) }}" />
-    <h5>
-      @{{ picture.user_id }} :
-      <span class="image-container--desc">{{picture.description}}</span>
-    </h5>
+  <div class="card">
+    <div class="image-container">
+      <h3>
+        <a
+          href="{{ url_for('show_picture',  name=picture.filename[:picture.filename.index('.')]) }}"
+        >
+          {{ picture.name }}
+        </a>
+      </h3>
+      <img src="{{ url_for('uploads', filename=picture.filename) }}" />
+      <div>
+        <h5>
+          @{{ picture.user_id }} :
+          <span class="image-container--desc">{{picture.description}}</span>
+        </h5>
+      </div>
+    </div>
+    <div class="image-container--tags">
+      {% for i in tags[picture.id] %}
+      <a href="">#{{i.tag_id}}</a>
+      {% endfor %}
+    </div>
   </div>
   {% endfor %}
 </main>

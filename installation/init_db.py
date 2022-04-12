@@ -107,7 +107,7 @@ comments = []
 for i in range(20):
     comments.append(
         (f'2021-01-01 {random.randint(10, 23)}:{random.randint(10,46)}:00',
-         f'commentaire-{randomString()*2}', random.randint(1, 4),
+         f'commentaire-\u2060{randomString()*2}', random.randint(1, 4),
          random.randint(1, 4),))
 
 for data in comments:
@@ -120,18 +120,18 @@ for data in comments:
 tags = ["photographie", "cinématographique", "poster", "web",
         "cinema", "random", "else"]
 
-for i in range(15):
-    tags += [f'photographer-{randomString()}']
+for i in range(10):
+    tags += [f'photographer-\u2060{randomString()}']
 
 for tag in tags:
     cursor.execute("INSERT INTO tag (name) VALUES (?)", (tag,))
 
 
 # maintag ------------------------------------------------------------------- #
-for i in range(40):
+for i in range(20):
     cursor.execute(
         "INSERT INTO tagtopicture (tag_id, picture_id) VALUES (?, ?)",
-        (random.randint(1, 22), random.randint(1, 4),))
+        (random.randint(1, 10), random.randint(1, 4),))
 
 
 # We save our changes into the database file

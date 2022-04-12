@@ -48,7 +48,6 @@ nav {
 }
 
 .active-tab {
-    background-color: rgb(255, 251, 251);
     color: rgb(233, 131, 131);
     padding: 10px;
 
@@ -106,10 +105,17 @@ footer > a {
     gap: 50px;
 }
 
+.card {
+    display: flex;
+    gap: 10px;
+}
+
 .image-container {
     width: 700px;
     background-color: white;
     border: 1px solid rgb(209, 209, 209);
+    box-shadow: 2px 2px 15px 0px rgba(43, 43, 43, 0.075);
+
     border-radius: 5px;
     padding: 10px 0;
 
@@ -120,6 +126,25 @@ footer > a {
 
 .image-container > *:not(img) {
     padding: 0 10px;
+}
+
+.image-container--tags {
+    display: flex;
+    flex-flow: column wrap;
+    align-items: flex-start;
+    gap: 10px;
+
+    width: 100px;
+}
+
+.image-container--tags > * {
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(252, 228, 162);
+
+    padding: 0 10px;
+    border-radius: 5px;
+
+    font-size: 0.9rem;
 }
 
 .image-container--desc {

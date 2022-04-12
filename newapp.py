@@ -130,9 +130,17 @@ def secure_file(name):
 
 @app.route('/')
 def index():
-    rv = convert_data(get_data('picture'))
+    pictures = convert_data(get_data('picture'))
+    tags = convert_data(get_data('tagtopicture'))
+    tags_by_picture = {
+        i['id']: list(filter(lambda x: x['picture_id'] == i['id'],
+                             tags)) for i in pictures
+    }
+
     JINJA_DATA = {
-        'pictures': sorted(rv, key=lambda x: x['upload_date'], reverse=True),
+        'pictures': sorted(pictures, key=lambda x: x['upload_date'],
+                           reverse=True),
+        'tags': tags_by_picture
     }
 
     return render_template('index.html', **JINJA_DATA)
@@ -143,11 +151,21 @@ def index():
 @app.route('/categories/<name>')
 def categories(name):
     rv = convert_data(get_data('picture'))
-    res = list(filter(lambda x: (x['category_id'] == name), rv))
-    if res == []:
+    pictures = list(filter(lambda x: (x['category_id'] == name), rv))
+    if pictures == []:
         abort(404)
+
+    tags = convert_data(get_data('tagtopicture'))
+
+    tags_by_picture = {
+        i['id']: list(filter(lambda x: x['picture_id'] == i['id'],
+                             tags)) for i in pictures
+    }
+
     JINJA_DATA = {
-        'pictures': sorted(res, key=lambda x: x['upload_date'], reverse=True),
+        'pictures': sorted(pictures, key=lambda x: x['upload_date'],
+                           reverse=True),
+        'tags': tags_by_picture
     }
 
     return render_template('index.html', **JINJA_DATA)
@@ -155,7 +173,7 @@ def categories(name):
 
 # show ---------------------------------------------------------------------- #
 
-@app.route("/gallery/<name>", methods=["GET", "POST"])
+@ app.route("/gallery/<name>", methods=["GET", "POST"])
 def show_picture(name):
     rv = convert_data(get_data('picture', id=(name+'%', 'filename',)))
     if rv is None:
