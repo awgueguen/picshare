@@ -39,6 +39,14 @@
         <div><span>{{picture.category_id}}</span></div>
       </div>
     </div>
+    <div class="show--comments">
+      {% for i in comments %}
+      <div class="show--comments-display">
+        <h5>{{ i.user_id }} <span>{{i.date_difference}}</span></h5>
+        <p>{{ i.content }}</p>
+      </div>
+      {% endfor %}
+    </div>
     <!-- <div>
       <form method="post" enctype="multipart/form-data">
         <label>Pseudo: <input type="txt" name="author" value="pseudo" /></label

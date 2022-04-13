@@ -18,7 +18,8 @@ cursor.execute("""CREATE TABLE category (
 cursor.execute('DROP TABLE IF EXISTS picture')
 cursor.execute("""CREATE TABLE picture (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            upload_date TEXT NOT NULL,
+                            upload_date DATE DEFAULT (datetime
+                            ('now','localtime')),
                             filename VARCHAR(200) NOT NULL,
                             name VARCHAR(20) NOT NULL,
                             description VARCHAR(200) NOT NULL,
@@ -34,7 +35,8 @@ cursor.execute("""CREATE TABLE picture (
 cursor.execute('DROP TABLE IF EXISTS comment')
 cursor.execute("""CREATE TABLE comment (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            upload_date TEXT NOT NULL,
+                            timestamp DATE DEFAULT (datetime
+                            ('now','localtime')),
                             content VARCHAR(100) NOT NULL,
                             user_id INTEGER NOT NULL,
                             picture_id INTEGER NOT NULL,
@@ -93,31 +95,32 @@ for name in ["Cats", "Dogs", "People", "Backgrounds"]:
 
 # picture ------------------------------------------------------------------ #
 for data in [
-        ("2022-08-12 10:12:21", "cat-1.jpg",  "Cat", "Lorem ipsum dolor sit\
+        ("cat-1.jpg",  "Cat", "Lorem ipsum dolor sit\
          amet, consectetur adipiscing elit. Nulla sapien felis, ornare vitae\
          urna quis, volutpat vestibulum sapien. Curabitur turpis lorem, \
          viverra hendrerit dapibus nec, aliquet nec orci. Phasellus\
          scelerisque risus sapien, non iaculis dolor condimentum ac.\
          Nulla a enim elit efficitur.", 1, 1),
-        ("2022-08-10 10:12:21", "dog-1.jpg", "Dog", "Hello", 2,  2),
-        ("2022-07-12 10:12:21", "guy-1.jpg", "Guy", "Hello", 3, 3),
-        ("2021-08-12 10:12:21", "woman-1.jpg", "Woman", "Hello", 4, 3), ]:
+        ("dog-1.jpg", "Dog", "Hello", 2,  2),
+        ("guy-1.jpg", "Guy", "Hello", 3, 3),
+        ("woman-1.jpg", "Woman", "Hello", 4, 3), ]:
     cursor.execute("""INSERT INTO picture
-                        (upload_date, filename,
+                        (filename,
                         name, description, user_id, category_id)
-                        VALUES (?, ?, ?, ?, ?, ?)""", data)
+                        VALUES (?, ?, ?, ?, ?)""", data)
 
 # comment ------------------------------------------------------------------ #
 comments = []
 for i in range(20):
     comments.append(
-        (f'2021-01-01 {random.randint(10, 23)}:{random.randint(10,46)}:00',
+        (f"""202{random.randint(1, 2)}-0{random.randint(1, 3)}-01
+            {random.randint(10, 23)}:{random.randint(10, 46)}:00""",
          f'commentaire-\u2060{randomString()*2}', random.randint(1, 4),
          random.randint(1, 4),))
 
 for data in comments:
     cursor.execute("""INSERT INTO comment
-                        (upload_date, content, user_id, picture_id)
+                        (timestamp, content, user_id, picture_id)
                         VALUES (?, ?, ?, ?)""", data)
 
 

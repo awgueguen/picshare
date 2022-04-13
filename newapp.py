@@ -26,7 +26,7 @@ tabs_titles = {
     'category': ['id', 'name'],
     'picture': ['id', 'upload_date', 'filename', 'name',
                 'description', 'user_id', 'category_id'],
-    'comment': ['id', 'upload_date', 'content', 'user_id', 'picture_id'],
+    'comment': ['id', 'timestamp', 'content', 'user_id', 'picture_id'],
     'tag': ['id', 'name'],
     'tagtopicture': ['id', 'tag_id', 'picture_id']
 }
@@ -90,11 +90,29 @@ def convert_data(rv: list):
                     query = f'''SELECT name FROM {pairs[j]}
                             WHERE id = ?'''
                     i[j] = query_db(query, (i[j],), one=True)[0][0]
-            elif j == "upload_date":
-                i[j] = datetime.strptime(
-                    i[j], '%Y-%m-%d %H:%M:%S').strftime('%B %d, %Y')
+        if "upload_date" in i:
+            i['upload_date'] = datetime.strptime(
+                i['upload_date'], '%Y-%m-%d %H:%M:%S').strftime('%B %d, %Y')
+        elif "timestamp" in i:
+            i['date_difference'] = date_difference(i['timestamp'])
     return rv
 
+
+def date_difference(date):
+    date_now = datetime.now()
+    delta = date_now - datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+    if delta.days < 1:
+        return f'{delta.seconds//60} minutes ago'
+    elif delta.days < 7:
+        return f'{delta.days} days ago'
+    elif delta.days < 30:
+        return f'{delta.days//7} weeks ago'
+    elif delta.days < 365:
+        return f'{delta.days//30} months ago'
+    elif delta.days < 365*2:
+        return f'{delta.days//365} years ago'
+    else:
+        return f'{delta.days//365*2} years ago'
 
 # --------------------------------------------------------------------------- #
 # routes                                                                      #
@@ -106,7 +124,7 @@ def convert_data(rv: list):
 @app.before_request
 def check_if_image_missing():
     rv = get_data('picture')
-    sql_request = 'DELETE FROM pictures WHERE filename = ?'
+    sql_request = 'DELETE FROM picture WHERE filename = ?'
     for i in rv:
         if not os.path.exists(app.config["UPLOAD_FOLDER"]+f'/{i["filename"]}'):
             update_db(sql_request, (i["filename"],))
@@ -188,9 +206,10 @@ def show_picture(name):
 
     JINJA_DATA = {
         'picture': rv[0],
-        'comments': list(filter(lambda x: (x['picture_id'] == id), comments)),
+        'comments': sorted(list(
+            filter(lambda x: (x['picture_id'] == id), comments)),
+            key=lambda x: x['timestamp'], reverse=True),
         'tags': list(filter(lambda x: (x['picture_id'] == id), tags)),
-
     }
 
     return render_template('show.html', **JINJA_DATA)
