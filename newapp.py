@@ -227,7 +227,9 @@ def check_if_image_missing():
     sql_request = 'DELETE FROM picture WHERE filename = ?'
     for i in rv:
         if not os.path.exists(app.config["UPLOAD_FOLDER"]+f'/{i["filename"]}'):
-            update_db(sql_request, (i["filename"],))
+            print(f'{i["filename"]} is missing')
+            get_db().execute(sql_request, (i["filename"],))
+            get_db().commit()
 
 
 @ app.context_processor
@@ -349,7 +351,6 @@ def show_picture(name):
 @ app.route('/upload', methods=['GET', 'POST'])
 def upload_picture():
     JINJA_DATA = {
-        'data': '',
         'allowed_extensions': ALLOWED_EXTENSIONS,
         'categories': convert_data(get_data('category')),
     }
@@ -365,13 +366,17 @@ def upload_picture():
 
     rv = [tuple(request.form.values()) + (rename_picture(request),)]
     res = convert_data(clean_data('picture', 'POST', rv))
+    JINJA_DATA['picture'] = res[0]
 
-    print(res)
     request.files['picture'].save(
         os.path.join(UPLOAD_FOLDER, res[0]['filename']))
 
     args = tuple(res[0].values())
-    update_db('picture', args)
+    picture_id = update_db('picture', args)
+
+    tags = extract_tags(res[0]['description'])
+    if tags:
+        inject_tags(tags, picture_id)
 
     return render_template('upload.html', **JINJA_DATA)
 
