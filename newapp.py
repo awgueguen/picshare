@@ -169,6 +169,37 @@ def validator(request, conditions: list):
                         'Must be less than 20 characters')
     return error
 
+
+def extract_tags(string: str, recurse=False):
+    if recurse is False:
+        allowed = [' ', '#']
+        string = unidecode(string)
+        string = ''.join([i for i in string if (i.isalnum() or i in allowed)])
+        while '# ' in string:
+            string = string.replace('# ', ' ')
+        while string[-1] == '#':
+            string = string[:-1]
+
+    if not string or '#' not in string:
+        return []
+    hash_pos = string.index('#')
+    if ' ' in string[hash_pos:]:
+        tag = string[hash_pos:string.index(' ', hash_pos)]
+    else:
+        tag = string[hash_pos:]
+    return [tag[1:]] + extract_tags(string[hash_pos+1:], recurse=True)
+
+
+def inject_tags(tags: list, picture_id: int):
+    sql_existing = query_db('SELECT id, name FROM tag')
+    clean_data = {i[1]: i[0] for i in sql_existing}
+    sql_join = 'INSERT INTO tagtopicture (tag_id, picture_id) VALUES (?, ?)'
+    for i in tags:
+        if i not in clean_data:
+            tag_id = update_db('tag', (i,))
+            clean_data[i] = tag_id
+        update_db('tagtopicture', (clean_data[i], picture_id, ))
+
 # --------------------------------------------------------------------------- #
 # routes                                                                      #
 # --------------------------------------------------------------------------- #
@@ -280,6 +311,12 @@ def show_picture(name):
         res = convert_data(clean_data('comment', 'POST', rv))
         args = tuple(res[0].values())
         update_db('comment', args)
+
+    # TAGS ------------------------------------------------------------------ #
+        tags = extract_tags(res[0]['content'])
+        print(tags)
+        if tags:
+            inject_tags(tags, id)
 
         return redirect(url_for('show_picture', _anchor="show--form",
                                 name=name))
