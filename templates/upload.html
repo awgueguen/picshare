@@ -31,14 +31,14 @@
 
   <p>allowed extension: {{ ', '.join(allowed_extensions) }}</p>
   <h3>Uploaded Picture</h3>
-  {% if data['picture_data'] %}
+  {% if picture %}
   <p>the picture</p>
-  {% for key, value in data['picture_data'].items() %}
+  {% for key, value in picture.items() %}
   <p>{{key}}: {{value}}</p>
   {% endfor %}
   <img
     src="{{ url_for('uploads',
-                filename=data['picture_data']['filename']) }}"
+                filename=picture.filename) }}"
     alt="test"
     width="300"
   />

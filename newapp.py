@@ -253,16 +253,19 @@ def secure_file(name):
 
 @ app.route('/')
 def index():
-    pictures = convert_data(get_data('picture'))
+    pictures = get_data('picture')
+    pictures_sorted = sorted(pictures, key=lambda x: x['upload_date'],
+                             reverse=True)
+    pictures = convert_data(pictures_sorted)
     tags = convert_data(get_data('tagtopicture'))
     tags_by_picture = {
         i['id']: list(filter(lambda x: x['picture_id'] == i['id'],
                              tags)) for i in pictures
     }
 
+    print(pictures)
     JINJA_DATA = {
-        'pictures': sorted(pictures, key=lambda x: x['upload_date'],
-                           reverse=True),
+        'pictures': pictures,
         'tags': tags_by_picture
     }
 
@@ -277,11 +280,20 @@ def categories(name):
         all_tags = convert_data(get_data('tagtopicture'))
         tag = list(filter(lambda x: (x['tag_id'] == name), all_tags))
         tag_list = list(map(lambda x: x['picture_id'], tag))
-        rv = convert_data(get_data('picture'))
+
+        rv = get_data('picture')
         pictures = list(filter(lambda x: (x['id'] in tag_list), rv))
+        pictures_sorted = sorted(pictures, key=lambda x: x['upload_date'],
+                                 reverse=True)
+        pictures = convert_data(pictures_sorted)
+
     else:
-        rv = convert_data(get_data('picture'))
-        pictures = list(filter(lambda x: (x['category_id'] == name), rv))
+        rv = get_data('picture')
+        pictures_sorted = sorted(rv, key=lambda x: x['upload_date'],
+                                 reverse=True)
+        pictures_tmp = convert_data(pictures_sorted)
+        pictures = list(
+            filter(lambda x: (x['category_id'] == name), pictures_tmp))
 
     if pictures == []:
         abort(404)
@@ -294,8 +306,7 @@ def categories(name):
     }
 
     JINJA_DATA = {
-        'pictures': sorted(pictures, key=lambda x: x['upload_date'],
-                           reverse=True),
+        'pictures': pictures,
         'tags': tags_by_picture
     }
 
