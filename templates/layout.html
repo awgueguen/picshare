@@ -8,7 +8,9 @@
       href="{{url_for('static', filename = 'css/style.css')}}"
       rel="stylesheet"
     />
-    <title>Picshare</title>
+    {% block head %}
+    <title>Picshare | Home</title>
+    {% endblock %}
   </head>
   <body>
     <header>

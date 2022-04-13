@@ -1,4 +1,13 @@
-{% extends 'layout.html' %} {% block corps %}
+{% extends 'layout.html' %}
+<!-- head blocl ----------------------------------------------------------- -->
+{% block head %} {% if "categories" in request.url.split('/') %}
+<title>Picshare | {{ request.url.rsplit('/', 1)[-1] }}</title>
+{% else %}
+<title>Picshare | Home</title>
+{% endif %} {% endblock %}
+
+<!-- main block ----------------------------------------------------------- -->
+{% block corps %}
 
 <main id="index">
   {% for picture in pictures %}
@@ -11,7 +20,12 @@
           {{ picture.name }}
         </a>
       </h3>
-      <img src="{{ url_for('uploads', filename=picture.filename) }}" />
+      <a
+        href="{{ url_for('show_picture',  name=picture.filename[:picture.filename.index('.')]) }}"
+      >
+        <img src="{{ url_for('uploads', filename=picture.filename) }}" />
+      </a>
+
       <div>
         <h5>
           @{{ picture.user_id }} :

@@ -1,12 +1,20 @@
 /* google font ------------------------------------------------------------- */
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap");
 
+/* variables --------------------------------------------------------------- */
+:root {
+    --main-width: 700px;
+    --aux-width: 100px;
+
+    --background: rgb(255, 251, 245);
+}
+
 /* default setup ----------------------------------------------------------- */
 html,
 body {
     box-sizing: border-box;
     height: 100%;
-    background-color: rgb(255, 251, 245);
+    background-color: var(--background);
 
     font-family: "Nunito";
     font-size: 16px;
@@ -111,7 +119,7 @@ footer > a {
 }
 
 .image-container {
-    width: 700px;
+    width: var(--main-width);
     background-color: white;
     border: 1px solid rgb(209, 209, 209);
     box-shadow: 2px 2px 15px 0px rgba(43, 43, 43, 0.075);
@@ -124,8 +132,13 @@ footer > a {
     gap: 10px;
 }
 
-.image-container > *:not(img) {
+.image-container > *:not(a) {
     padding: 0 10px;
+}
+
+.image-container img {
+    width: 100%;
+    height: auto;
 }
 
 .image-container--tags {
@@ -134,7 +147,7 @@ footer > a {
     align-items: flex-start;
     gap: 10px;
 
-    width: 100px;
+    width: var(--aux-width);
 }
 
 .image-container--tags > * {
@@ -147,7 +160,23 @@ footer > a {
     font-size: 0.9rem;
 }
 
+.image-container--tags > *:hover {
+    background-color: rgb(255, 195, 117);
+}
+
 .image-container--desc {
     color: grey;
     font-weight: 500;
+}
+
+/* ------------------------------------------------------------------------- */
+/* media queries                                                             */
+/* ------------------------------------------------------------------------- */
+
+/* color scheme ------------------------------------------------------------ */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: rgb(68, 68, 68);
+    }
 }
