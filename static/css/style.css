@@ -188,8 +188,8 @@ footer > a {
 }
 
 .show--image-container img {
-    border: 1px solid rgb(51, 51, 51);
-    box-shadow: 2px 2px 15px 0px rgba(22, 22, 22, 0.39);
+    border: 1px solid rgb(37, 37, 37);
+    box-shadow: 2px 2px 15px 0px rgba(22, 22, 22, 0.623);
     width: auto;
     height: auto;
     max-height: 58vh;
