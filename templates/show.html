@@ -29,14 +29,20 @@
         <h4>Tags</h4>
         <div>
           {% for i in tags %}
-          <span>{{ i.tag_id }}</span>
+          <a href="{{ url_for('categories', name=i.tag_id, tag=true) }}"
+            >{{ i.tag_id }}</a
+          >
           {% endfor %}
         </div>
       </div>
 
       <div class="show--links-category">
         <h4>Category</h4>
-        <div><span>{{picture.category_id}}</span></div>
+        <div>
+          <a href="{{ url_for('categories', name=picture.category_id) }}"
+            >{{picture.category_id}}</a
+          >
+        </div>
       </div>
     </div>
     <div id="show--form">

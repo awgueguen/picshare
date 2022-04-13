@@ -257,8 +257,17 @@ def index():
 
 @ app.route('/categories/<name>')
 def categories(name):
-    rv = convert_data(get_data('picture'))
-    pictures = list(filter(lambda x: (x['category_id'] == name), rv))
+    if request.args.get('tag'):
+        all_tags = convert_data(get_data('tagtopicture'))
+        tag = list(filter(lambda x: (x['tag_id'] == name), all_tags))
+        tag_list = list(map(lambda x: x['picture_id'], tag))
+        print(tag_list)
+        rv = convert_data(get_data('picture'))
+        pictures = list(filter(lambda x: (x['id'] in tag_list), rv))
+    else:
+        rv = convert_data(get_data('picture'))
+        pictures = list(filter(lambda x: (x['category_id'] == name), rv))
+
     if pictures == []:
         abort(404)
 
