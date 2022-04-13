@@ -14,7 +14,7 @@ from unidecode import unidecode
 
 DATABASE = 'app.db'
 UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'.jpg', '.png', '.gif', '.jpeg'}
+ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif']
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -34,7 +34,7 @@ tabs_titles = {
 
 post_tabs = {
     'comment': ['content', 'user_id', 'picture_id'],
-    'picture': ['filename', 'description', 'user_id', 'category_id'],
+    'picture': ['user_id', 'name', 'description', 'category_id', 'filename'],
     'tag': ['name'],
     'tagtopicture': ['tag_id', 'picture_id'],
     'user': ['name']
@@ -145,12 +145,6 @@ def validator(request, conditions: list):
         if i in conditions:
             if values[i] == '':
                 error[i] = ('This field is required')
-            elif i == 'picture':
-                filename = secure_filename(request.files['picture'].filename)
-                if filename == '':
-                    error[i] = ('Missing picture')
-                elif filename[filename.index('.'):] not in ALLOWED_EXTENSIONS:
-                    error[i] = ('Invalid file type')
             elif i == 'content':
                 if len(values[i]) > 300:
                     error[i] = (
@@ -161,12 +155,22 @@ def validator(request, conditions: list):
                         'This field must be less than 300 characters')
             elif i == 'nickname':
                 if len(values[i]) > 20:
-                    error[i] = (
-                        'Must be less than 20 characters')
+                    error[i] = ('Must be less than 20 characters')
+                elif not values[i].isalpha():
+                    error[i] = ('No special characters allowed')
             elif i == 'name':
                 if len(values[i]) > 20:
-                    error[i] = (
-                        'Must be less than 20 characters')
+                    error[i] = ('Must be less than 20 characters')
+                elif not values[i].isalpha():
+                    error[i] = ('No special characters allowed')
+
+    if 'picture' in conditions:
+        filename, file_extension = os.path.splitext(
+            secure_filename(request.files['picture'].filename))
+        if filename == '':
+            error['picture'] = ('Missing picture')
+        elif file_extension not in ALLOWED_EXTENSIONS:
+            error['picture'] = ('Invalid file type')
     return error
 
 
@@ -199,6 +203,16 @@ def inject_tags(tags: list, picture_id: int):
             tag_id = update_db('tag', (i,))
             clean_data[i] = tag_id
         update_db('tagtopicture', (clean_data[i], picture_id, ))
+
+
+def rename_picture(request):
+    filename = (
+        ''.join((i for i in request.form['name'] if i.isalnum()))).lower()
+    query = f'SELECT filename FROM picture WHERE filename LIKE ?'
+    number = str(len(query_db(query, (filename+'-%',))) + 1)
+    true_name, file_extension = os.path.splitext(
+        secure_filename(request.files['picture'].filename))
+    return filename+'-'+number+file_extension
 
 # --------------------------------------------------------------------------- #
 # routes                                                                      #
@@ -261,7 +275,6 @@ def categories(name):
         all_tags = convert_data(get_data('tagtopicture'))
         tag = list(filter(lambda x: (x['tag_id'] == name), all_tags))
         tag_list = list(map(lambda x: x['picture_id'], tag))
-        print(tag_list)
         rv = convert_data(get_data('picture'))
         pictures = list(filter(lambda x: (x['id'] in tag_list), rv))
     else:
@@ -323,7 +336,6 @@ def show_picture(name):
 
     # TAGS ------------------------------------------------------------------ #
         tags = extract_tags(res[0]['content'])
-        print(tags)
         if tags:
             inject_tags(tags, id)
 
@@ -331,3 +343,39 @@ def show_picture(name):
                                 name=name))
 
     return render_template('show.html', **JINJA_DATA)
+
+
+# image upload -------------------------------------------------------------- #
+@ app.route('/upload', methods=['GET', 'POST'])
+def upload_picture():
+    JINJA_DATA = {
+        'data': '',
+        'allowed_extensions': ALLOWED_EXTENSIONS,
+        'categories': convert_data(get_data('category')),
+    }
+
+    if 'picture' not in request.files:
+        return render_template('upload.html', **JINJA_DATA)
+
+    JINJA_DATA['error'] = validator(request, ['picture', 'name', 'nickname'])
+    print(JINJA_DATA['error'])
+    if JINJA_DATA['error']:
+        return render_template('upload.html', **JINJA_DATA,
+                               scroll="upload--form")
+
+    rv = [tuple(request.form.values()) + (rename_picture(request),)]
+    res = convert_data(clean_data('picture', 'POST', rv))
+
+    print(res)
+    request.files['picture'].save(
+        os.path.join(UPLOAD_FOLDER, res[0]['filename']))
+
+    args = tuple(res[0].values())
+    update_db('picture', args)
+
+    return render_template('upload.html', **JINJA_DATA)
+
+
+# test ---------------------------------------------------------------------- #
+if __name__ == '__main__':
+    app.run(debug=True)

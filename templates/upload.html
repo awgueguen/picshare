@@ -1,47 +1,49 @@
-{% extends 'layout.html' %} {% block corps%}
+{% extends 'layout.html' %}
+<!-- header block --------------------------------------------------------- -->
+{% block head %}
+<title>Picshare | Upload</title>
+{% endblock %}
+<!-- main block ----------------------------------------------------------- -->
+{% block corps %}
 <h1>Upload Page</h1>
 <form method="post" enctype="multipart/form-data">
-    <div>
-        <input type="file" name="picture" />
-        <label
-            >Auteur: <input type="txt" name="author" value="Jean-Michel"
-        /></label>
-        <label>Titre: <input type="txt" name="name" value="cat" /></label>
-        <label
-            >Description:
-            <input type="txt" name="description" value="Il est un peu simple"
-        /></label>
-        <label
-            >Catégorie:
-            <select id="categories" name="category">
-                {% for i in data['categories'] %}
-                <option>{{ i["name"] }}</option>
-                {% endfor %}
-            </select>
-        </label>
-        <input type="submit" value="Upload" />
-    </div>
-    <h2>Informations</h2>
-    {% if data['error'] %}
-    <p>{{ data['error'] }}</p>
-    {% else %}
-    <p>no error</p>
-    {% endif %}
-    <p>allowed extension: {{ ', '.join(data['ok_ext']) }}</p>
-    <h3>Uploaded Picture</h3>
-    {% if data['picture_data'] %}
-    <p>the picture</p>
-    {% for key, value in data['picture_data'].items() %}
-    <p>{{key}}: {{value}}</p>
-    {% endfor %}
-    <img
-        src="{{ url_for('uploads',
+  <div>
+    <input type="file" name="picture" />
+    <label
+      >Auteur: <input type="txt" name="nickname" value="Jean-Michel"
+    /></label>
+    <label>Titre: <input type="txt" name="name" value="cat" /></label>
+    <label
+      >Description:
+      <input type="txt" name="description" value="Il est un peu simple"
+    /></label>
+    <label
+      >Catégorie:
+      <select id="categories" name="category">
+        {% for i in categories %}
+        <option>{{ i["name"] }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <input type="submit" value="Upload" />
+  </div>
+  <h2>Informations</h2>
+
+  <p>allowed extension: {{ ', '.join(allowed_extensions) }}</p>
+  <h3>Uploaded Picture</h3>
+  {% if data['picture_data'] %}
+  <p>the picture</p>
+  {% for key, value in data['picture_data'].items() %}
+  <p>{{key}}: {{value}}</p>
+  {% endfor %}
+  <img
+    src="{{ url_for('uploads',
                 filename=data['picture_data']['filename']) }}"
-        alt="test"
-        width="300"
-    />
-    {% else %}
-    <p>no picture yet</p>
-    {% endif %}
+    alt="test"
+    width="300"
+  />
+  {% else %}
+  <p>no picture yet</p>
+  {% endif %}
 </form>
 {% endblock %}

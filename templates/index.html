@@ -41,7 +41,7 @@
     <div class="image-container--tags">
       {% for i in tags[picture.id] %}
       <a href="{{ url_for('categories', name=i.tag_id, tag=true) }}"
-        >#{{i.tag_id}}</a
+        >{{i.tag_id}}</a
       >
       {% endfor %}
     </div>
