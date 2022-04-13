@@ -93,7 +93,12 @@ for name in ["Cats", "Dogs", "People", "Backgrounds"]:
 
 # picture ------------------------------------------------------------------ #
 for data in [
-        ("2022-08-12 10:12:21", "cat-1.jpg",  "Cat", "Hello", 1, 1),
+        ("2022-08-12 10:12:21", "cat-1.jpg",  "Cat", "Lorem ipsum dolor sit\
+         amet, consectetur adipiscing elit. Nulla sapien felis, ornare vitae\
+         urna quis, volutpat vestibulum sapien. Curabitur turpis lorem, \
+         viverra hendrerit dapibus nec, aliquet nec orci. Phasellus\
+         scelerisque risus sapien, non iaculis dolor condimentum ac.\
+         Nulla a enim elit efficitur.", 1, 1),
         ("2022-08-10 10:12:21", "dog-1.jpg", "Dog", "Hello", 2,  2),
         ("2022-07-12 10:12:21", "guy-1.jpg", "Guy", "Hello", 3, 3),
         ("2021-08-12 10:12:21", "woman-1.jpg", "Woman", "Hello", 4, 3), ]:

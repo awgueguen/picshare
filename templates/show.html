@@ -1,9 +1,59 @@
-{% extends 'layout.html' %} {% block corps %}
+{% extends 'layout.html' %}
+<!-- head block ----------------------------------------------------------- -->
+{% block head %}
+<title>Picshare | {{picture.name}}</title>
+{% endblock %}
 
-<main>
-  <div>
+<!-- main block ----------------------------------------------------------- -->
+{% block corps %}
+
+<main id="show">
+  <div class="show--image-container">
     <img src="{{ url_for('uploads', filename=picture.filename) }}" />
   </div>
+
+  <div class="show--details">
+    <div class="show--personal">
+      <h3>{{ picture.user_id }}</h3>
+      <h2>
+        {{ picture.name }} <span>uploaded on {{ picture.upload_date }}</span>
+      </h2>
+    </div>
+
+    <div class="show--description">
+      <p>{{ picture.description }}</p>
+    </div>
+
+    <div class="show--links">
+      <div class="show--links-tags">
+        <h4>Tags</h4>
+        <div>
+          {% for i in tags %}
+          <span>{{ i.tag_id }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="show--links-category">
+        <h4>Category</h4>
+        <div><span>{{picture.category_id}}</span></div>
+      </div>
+    </div>
+    <!-- <div>
+      <form method="post" enctype="multipart/form-data">
+        <label>Pseudo: <input type="txt" name="author" value="pseudo" /></label
+        ><br /><br />
+        <label
+          >Commentaire: <br /><br />
+          <textarea name="content">
+            200 caractères maximum #exemple #de #hashtags</textarea
+          ></label
+        ><br /><br />
+        <input type="submit" value="upload" />
+      </form>
+    </div> -->
+  </div>
+  {{comments}}
 </main>
 
 {% endblock %}

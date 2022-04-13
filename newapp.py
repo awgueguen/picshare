@@ -90,6 +90,9 @@ def convert_data(rv: list):
                     query = f'''SELECT name FROM {pairs[j]}
                             WHERE id = ?'''
                     i[j] = query_db(query, (i[j],), one=True)[0][0]
+            elif j == "upload_date":
+                i[j] = datetime.strptime(
+                    i[j], '%Y-%m-%d %H:%M:%S').strftime('%B %d, %Y')
     return rv
 
 

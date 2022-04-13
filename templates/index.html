@@ -28,8 +28,13 @@
 
       <div>
         <h5>
-          @{{ picture.user_id }} :
-          <span class="image-container--desc">{{picture.description}}</span>
+          @{{ picture.user_id }} : {% if picture.description|length > 150 %}
+          <span class="image-container--desc"
+            >{{picture.description[:150] + '..'}}</span
+          >
+          {% else %}
+          <span class="image-container--desc">{{picture.description}}</span>{%
+          endif %}
         </h5>
       </div>
     </div>
