@@ -102,17 +102,21 @@ def date_difference(date):
     date_now = datetime.now()
     delta = date_now - datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
     if delta.days < 1:
-        return f'{delta.seconds//60} minutes ago'
+        value = delta.seconds//60
+        return f'{value} minute{"s" if value > 1 else ""} ago'
     elif delta.days < 7:
-        return f'{delta.days} days ago'
+        value = delta.days
+        return f'{value} day{"s" if value > 1 else ""} ago'
     elif delta.days < 30:
-        return f'{delta.days//7} weeks ago'
+        value = delta.days//7
+        return f'{value} week{"s" if value > 1 else ""} ago'
     elif delta.days < 365:
-        return f'{delta.days//30} months ago'
-    elif delta.days < 365*2:
-        return f'{delta.days//365} years ago'
+        value = delta.days//30
+        return f'{value} month{"s" if value > 1 else ""} ago'
     else:
-        return f'{delta.days//365*2} years ago'
+        value = delta.days//365
+        return f'{value} year{"s" if value > 1 else ""} ago'
+
 
 # --------------------------------------------------------------------------- #
 # routes                                                                      #

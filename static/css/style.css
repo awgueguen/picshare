@@ -281,6 +281,50 @@ footer > a {
   font-size: 0.9rem;
 }
 
+.show--form > form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.show--form textarea {
+  font-family: inherit;
+  font-size: 0.9rem;
+  width: 100%;
+  height: 50px;
+  padding: 2px 5px;
+  resize: none;
+}
+
+.show--form input[name="nickname"] {
+  padding: 2px 5px;
+}
+
+.show--button {
+  padding: 10px 25px;
+  background-color: rgb(255, 195, 117);
+  border: 1px solid black;
+  cursor: pointer;
+  position: relative;
+  background-color: rgba(0, 0, 0, 0);
+}
+.show--button:after {
+  content: "";
+  background-color: #ffe54c;
+  width: 100%;
+  z-index: -1;
+  position: absolute;
+  height: 100%;
+  top: 4px;
+  left: 4px;
+  transition: 0.2s;
+}
+
+.show--button:hover::after {
+  top: 0px;
+  left: 0px;
+}
 /* ------------------------------------------------------------------------- */
 /* media queries                                                             */
 /* ------------------------------------------------------------------------- */

@@ -18,8 +18,8 @@
         <a href="{{ url_for('index') }}" class="tab">Picshare</a>
         {% for i in menu %} {% if i == request.url.rsplit('/', 1)[-1] %}
         <a href="{{ url_for('categories', name=i) }}" class="active-tab"
-          >{{ i }}
-        </a>
+          >{{ i }}</a
+        >
         {% else %}
         <a href="{{ url_for('categories', name=i) }}" class="tab"> {{ i }} </a>
         {% endif %} {% endfor %}
