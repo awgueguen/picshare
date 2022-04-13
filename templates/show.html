@@ -39,7 +39,26 @@
         <div><span>{{picture.category_id}}</span></div>
       </div>
     </div>
-    <div class="show--comments">
+    <div id="show--form">
+      <form method="post" enctype="multipart/form-data">
+        <textarea
+          type="txt"
+          name="content"
+          placeholder="{{ error.content if error.content else 'Add a comment...' }}"
+          class="{{ 'show--error' if error.content else '' }}"
+        ></textarea>
+
+        <input
+          type="txt"
+          name="nickname"
+          placeholder="{{ error.nickname if error.nickname else 'Nickname' }}"
+          class="{{ 'show--error' if error.nickname else '' }}"
+        />
+
+        <button type="submit" value="Post" class="show--button">Post</button>
+      </form>
+    </div>
+    <div id="show--comments">
       {% for i in comments %}
       <div class="show--comments-display">
         <h5>{{ i.user_id }} <span>{{i.date_difference}}</span></h5>
@@ -47,19 +66,13 @@
       </div>
       {% endfor %}
     </div>
-    <div class="show--form">
-      <form method="post" enctype="multipart/form-data">
-        <textarea
-          type="txt"
-          name="content"
-          placeholder="Add a comment"
-        ></textarea>
-        <input type="txt" name="nickname" placeholder="Nickname" />
-
-        <button type="submit" value="Post" class="show--button">Post</button>
-      </form>
-    </div>
   </div>
+
+  {% if scroll %}
+  <script>
+    document.getElementById("{{ scroll }}").scrollIntoView();
+  </script>
+  {% endif %}
 </main>
 
 {% endblock %}

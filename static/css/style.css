@@ -265,30 +265,30 @@ footer > a {
   font-size: 0.9rem;
 }
 
-.show--comments {
+#show--comments {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.show--comments h5 > span {
+#show--comments h5 > span {
   color: rgb(150, 150, 150);
   font-weight: 500;
 }
 
-.show--comments p {
+#show--comments p {
   color: rgb(56, 56, 56);
   font-size: 0.9rem;
 }
 
-.show--form > form {
+#show--form > form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
 }
 
-.show--form textarea {
+#show--form textarea {
   font-family: inherit;
   font-size: 0.9rem;
   width: 100%;
@@ -297,8 +297,9 @@ footer > a {
   resize: none;
 }
 
-.show--form input[name="nickname"] {
+#show--form input[name="nickname"] {
   padding: 2px 5px;
+  width: 30%;
 }
 
 .show--button {
@@ -325,6 +326,11 @@ footer > a {
   top: 0px;
   left: 0px;
 }
+
+.show--error::placeholder {
+  color: red;
+}
+
 /* ------------------------------------------------------------------------- */
 /* media queries                                                             */
 /* ------------------------------------------------------------------------- */

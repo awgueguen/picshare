@@ -139,25 +139,35 @@ def date_difference(date):
 
 
 def validator(request, conditions: list):
-    for i in conditions:
-        if i == 'picture':
-            filename = secure_filename(request.files['picture'].filename)
-            if filename == '':
-                return {"id": i, "e": 'missing picture'}
-            elif filename[filename.index('.'):] not in ALLOWED_EXTENSIONS:
-                return {"id": i, "e": 'invalid picture'}
-        elif not request.form[i]:
-            return {"id": i, "e": 'missing field'}
-        elif i == 'content' or i == 'description':
-            length = len(request.form.get('content')) if request.form.get(
-                'content') else len(request.form.get('description'))
-            if length > 300:
-                return {"id": i, "e": 'content too long'}
-        elif i == 'nickname' or i == 'name':
-            length = len(request.form.get('nickname')) if request.form.get(
-                'nickname') else len(request.form.get('name'))
-            if length > 20:
-                return {"id": i, "e": f'{i} too long'}
+    error = {}
+    values = request.form.to_dict()
+    for i in values:
+        if i in conditions:
+            if values[i] == '':
+                error[i] = ('This field is required')
+            elif i == 'picture':
+                filename = secure_filename(request.files['picture'].filename)
+                if filename == '':
+                    error[i] = ('Missing picture')
+                elif filename[filename.index('.'):] not in ALLOWED_EXTENSIONS:
+                    error[i] = ('Invalid file type')
+            elif i == 'content':
+                if len(values[i]) > 300:
+                    error[i] = (
+                        'This field must be less than 300 characters')
+            elif i == 'description':
+                if len(values[i]) > 300:
+                    error[i] = (
+                        'This field must be less than 300 characters')
+            elif i == 'nickname':
+                if len(values[i]) > 20:
+                    error[i] = (
+                        'Must be less than 20 characters')
+            elif i == 'name':
+                if len(values[i]) > 20:
+                    error[i] = (
+                        'Must be less than 20 characters')
+    return error
 
 # --------------------------------------------------------------------------- #
 # routes                                                                      #
@@ -263,13 +273,15 @@ def show_picture(name):
         error = validator(request, ['content', 'nickname'])
         if error:
             JINJA_DATA['error'] = error
-            return render_template('show.html', **JINJA_DATA)
+            return render_template('show.html', **JINJA_DATA,
+                                   scroll="show--form")
 
         rv = [tuple(request.form.values()) + (id,)]
         res = convert_data(clean_data('comment', 'POST', rv))
         args = tuple(res[0].values())
         update_db('comment', args)
 
-        return redirect(url_for('show_picture', name=name))
+        return redirect(url_for('show_picture', _anchor="show--form",
+                                name=name))
 
     return render_template('show.html', **JINJA_DATA)
