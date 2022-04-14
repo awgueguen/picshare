@@ -31,18 +31,35 @@
     </div>
     <div class="form--part">
       <label
-        >Nickname: <input type="txt" name="nickname" placeholder="Jean-Michel"
+        >Nickname:
+        <input
+          type="txt"
+          name="nickname"
+          placeholder="{{ error.nickname if error.nickname else 'No special characters' }}"
+          class="{{ 'show--error' if error.nickname else '' }}"
       /></label>
       <label
-        >Picture name: <input type="txt" name="name" placeholder="cat"
+        >Picture name:
+        <input
+          type="txt"
+          name="name"
+          placeholder="{{ error.name if error.name else 'Limit 20 characters' }}"
+          class="{{ 'show--error' if error.name else '' }}"
       /></label>
       <label
         >Description:
-        <input type="txt" name="description" placeholder="Il est un peu simple"
+        <input
+          type="txt"
+          name="description"
+          placeholder="{{ error.description if error.description else 'Limit 300 characters' }}"
+          class="{{ 'show--error' if error.description else '' }}"
       /></label>
     </div>
 
     <input type="submit" value="Post" class="submit-picture" />
+    {% if error.picture %}
+    <div class="error">{{ error.picture }}</div>
+    {% endif %}
   </form>
 </main>
 

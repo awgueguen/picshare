@@ -161,7 +161,7 @@ def validator(request, conditions: list):
             elif i == 'name':
                 if len(values[i]) > 20:
                     error[i] = ('Must be less than 20 characters')
-                elif not values[i].isalpha():
+                elif not values[i].replace(' ', '').isalpha():
                     error[i] = ('No special characters allowed')
 
     if 'picture' in conditions:
@@ -206,8 +206,10 @@ def inject_tags(tags: list, picture_id: int):
 
 
 def rename_picture(request):
+    tmp_filename = request.form['name'].replace(' ', '-')
     filename = (
-        ''.join((i for i in request.form['name'] if i.isalnum()))).lower()
+        ''.join((i for i in tmp_filename if
+                 (i.isalnum() or i == '-')))).lower()
     query = f'SELECT filename FROM picture WHERE filename LIKE ?'
     number = str(len(query_db(query, (filename+'-%',))) + 1)
     true_name, file_extension = os.path.splitext(
@@ -263,7 +265,6 @@ def index():
                              tags)) for i in pictures
     }
 
-    print(pictures)
     JINJA_DATA = {
         'pictures': pictures,
         'tags': tags_by_picture
@@ -362,6 +363,7 @@ def show_picture(name):
 @ app.route('/upload', methods=['GET', 'POST'])
 def upload_picture():
     JINJA_DATA = {
+        'error': '',
         'allowed_extensions': ALLOWED_EXTENSIONS,
         'categories': convert_data(get_data('category')),
     }
@@ -369,7 +371,8 @@ def upload_picture():
     if 'picture' not in request.files:
         return render_template('upload.html', **JINJA_DATA)
 
-    JINJA_DATA['error'] = validator(request, ['picture', 'name', 'nickname'])
+    JINJA_DATA['error'] = validator(
+        request, ['picture', 'name', 'nickname', 'description'])
     print(JINJA_DATA['error'])
     if JINJA_DATA['error']:
         return render_template('upload.html', **JINJA_DATA,
