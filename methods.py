@@ -112,9 +112,7 @@ def get_data(table: str, id=()):
     else:
         sql_request = f'SELECT * FROM {table}'
         rv = query_db(sql_request)
-    clean_data = [{tabs[i]: j[i]
-                   for i in range(len(tabs))} for j in rv]
-    return clean_data
+    return [{tabs[i]: j[i] for i in range(len(tabs))} for j in rv]
 
 
 # --------------------------------------------------------------------------- #
@@ -207,11 +205,11 @@ def rename_picture(request):
     filename = (
         ''.join((i for i in tmp_filename if
                  (i.isalnum() or i == '-')))).lower()
-    query = f'SELECT filename FROM picture WHERE filename LIKE ?'
-    number = str(len(query_db(query, (filename+'-%',))) + 1)
+    query = 'SELECT filename FROM picture WHERE filename LIKE ?'
+    number = str(len(query_db(query, (f'{filename}-%', ))) + 1)
     true_name, file_extension = os.path.splitext(
         secure_filename(request.files['picture'].filename))
-    return filename+'-'+number+file_extension
+    return f'{filename}-{number}{file_extension}'
 
 
 # --------------------------------------------------------------------------- #

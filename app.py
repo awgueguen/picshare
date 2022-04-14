@@ -132,7 +132,7 @@ def categories(name):
 @ app.route("/gallery/<name>", methods=["GET", "POST"])
 def show_picture(name):
     """Renders the show page."""
-    rv = convert_data(get_data('picture', id=(name+'%', 'filename',)))
+    rv = convert_data(get_data('picture', id=(f'{name}%', 'filename')))
     if rv is None:
         abort(404)
     id = rv[0]['id']
@@ -150,8 +150,7 @@ def show_picture(name):
 
     # POST ------------------------------------------------------------------ #
     if request.method == 'POST':
-        error = validator(request, ['content', 'nickname'])
-        if error:
+        if error := validator(request, ['content', 'nickname']):
             JINJA_DATA['error'] = error
             return render_template('show.html', **JINJA_DATA,
                                    scroll="show--form")
@@ -160,10 +159,7 @@ def show_picture(name):
         res = convert_data(clean_data('comment', 'POST', rv))
         args = tuple(res[0].values())
         update_db('comment', args)
-
-    # TAGS ------------------------------------------------------------------ #
-        tags = extract_tags(res[0]['content'])
-        if tags:
+        if tags := extract_tags(res[0]['content']):
             inject_tags(tags, id)
 
         return redirect(url_for('show_picture', _anchor="show--form",
@@ -207,8 +203,7 @@ def upload_picture():
     picture_id = update_db('picture', args)
 
     # tags ------------------------------------------------------------------ #
-    tags = extract_tags(res[0]['description'])
-    if tags:
+    if tags := extract_tags(res[0]['description']):
         inject_tags(tags, picture_id)
 
     return redirect(url_for('index'))
