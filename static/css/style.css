@@ -53,6 +53,13 @@ nav {
 
   border-bottom: 1px solid rgb(214, 214, 214);
   box-shadow: 0px 4px 15px -15px rgba(43, 43, 43, 0.8);
+
+  display: flex;
+  justify-content: space-between;
+}
+
+nav > div:last-child {
+  padding-right: 15px;
 }
 
 .active-tab {
@@ -304,7 +311,6 @@ footer > a {
 
 .show--button {
   padding: 10px 25px;
-  background-color: rgb(255, 195, 117);
   border: 1px solid black;
   cursor: pointer;
   position: relative;
@@ -329,6 +335,98 @@ footer > a {
 
 .show--error::placeholder {
   color: red;
+}
+
+/* upload ------------------------------------------------------------------ */
+
+#upload {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#upload > form {
+  width: var(--main-width);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form--part {
+  border-bottom: 2px solid rgb(211, 211, 211);
+  padding-bottom: 20px;
+}
+
+.form--part:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.form--part:nth-child(3) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.form--part:nth-child(3) label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+
+#upload input:not([type="file"]):not([type="submit"]) {
+  padding: 2px 5px;
+  width: calc(var(--main-width) / 2);
+}
+
+.upload--image-preview {
+  width: calc(var(--main-width) / 2);
+  min-height: 100px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-weight: 500;
+  color: lightgray;
+  border: 2px solid lightgray;
+}
+
+.image-preview--image {
+  display: none;
+  width: 100%;
+}
+
+#upload input[type="file"] {
+  display: none;
+}
+
+.image-button {
+  height: 50px;
+  width: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: rgb(255, 255, 255);
+
+  background-color: rgb(235, 197, 92);
+  cursor: pointer;
+}
+
+.submit-picture {
+  align-self: center;
+  width: 250px;
+  padding: 10px 25px;
+  cursor: pointer;
+  position: relative;
+  color: rgb(255, 255, 255);
+  background-color: rgb(235, 197, 92);
+  border: none;
 }
 
 /* ------------------------------------------------------------------------- */

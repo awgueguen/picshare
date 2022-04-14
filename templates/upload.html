@@ -5,45 +5,78 @@
 {% endblock %}
 <!-- main block ----------------------------------------------------------- -->
 {% block corps %}
-<h1>Upload Page</h1>
-<form method="post" enctype="multipart/form-data">
-  <div>
-    <input type="file" name="picture" />
-    <label
-      >Auteur: <input type="txt" name="nickname" value="Jean-Michel"
-    /></label>
-    <label>Titre: <input type="txt" name="name" value="cat" /></label>
-    <label
-      >Description:
-      <input type="txt" name="description" value="Il est un peu simple"
-    /></label>
-    <label
-      >Catégorie:
-      <select id="categories" name="category">
-        {% for i in categories %}
-        <option>{{ i["name"] }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <input type="submit" value="Upload" />
-  </div>
-  <h2>Informations</h2>
+<main id="upload">
+  <form method="post" enctype="multipart/form-data">
+    <div class="form--part">
+      <label class="image-button" for="inpFile">
+        <span class="material-icons"> add_photo_alternate </span> &nbsp; Upload
+        a picture</label
+      >
+      <input type="file" name="picture" id="inpFile" accept="image/*" />
+      <div class="upload--image-preview" id="imagePreview">
+        <img src="" alt="Image Preview" class="image-preview--image" />
+        <span class="image-preview--default">Image Preview</span>
+      </div>
+      <p>allowed extension: {{ ', '.join(allowed_extensions) }}</p>
+    </div>
+    <div class="form--part">
+      <label
+        >Category:
+        <select id="categories" name="category">
+          {% for i in categories %}
+          <option>{{ i["name"] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="form--part">
+      <label
+        >Nickname: <input type="txt" name="nickname" placeholder="Jean-Michel"
+      /></label>
+      <label
+        >Picture name: <input type="txt" name="name" placeholder="cat"
+      /></label>
+      <label
+        >Description:
+        <input type="txt" name="description" placeholder="Il est un peu simple"
+      /></label>
+    </div>
 
-  <p>allowed extension: {{ ', '.join(allowed_extensions) }}</p>
-  <h3>Uploaded Picture</h3>
-  {% if picture %}
-  <p>the picture</p>
-  {% for key, value in picture.items() %}
-  <p>{{key}}: {{value}}</p>
-  {% endfor %}
-  <img
-    src="{{ url_for('uploads',
-                filename=picture.filename) }}"
-    alt="test"
-    width="300"
-  />
-  {% else %}
-  <p>no picture yet</p>
-  {% endif %}
-</form>
+    <input type="submit" value="Post" class="submit-picture" />
+  </form>
+</main>
+
+<!-- some javascript ------------------------------------------------------ -->
+<script>
+  const inpFile = document.getElementById("inpFile");
+  const previewContainer = document.getElementById("imagePreview");
+  const previewImage = previewContainer.querySelector(".image-preview--image");
+  const previewDefaultText = previewContainer.querySelector(
+    ".image-preview--default"
+  );
+
+  inpFile.addEventListener("change", function () {
+    const file = this.files[0];
+
+    console.log(file);
+    if (file) {
+      const reader = new FileReader();
+      previewDefaultText.style.display = "none";
+      previewImage.style.display = "block";
+
+      reader.addEventListener("load", function () {
+        previewImage.setAttribute("src", this.result);
+      });
+      reader.readAsDataURL(file);
+    }
+  });
+</script>
+
+{% if scroll %}
+<script>
+  document.getElementById("{{ scroll }}").scrollIntoView();
+</script>
+{% endif %}
+
+<!-- end block ------------------------------------------------------------ -->
 {% endblock %}

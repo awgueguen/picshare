@@ -8,6 +8,10 @@
       href="{{url_for('static', filename = 'css/style.css')}}"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
     {% block head %}
     <title>Picshare | Home</title>
     {% endblock %}
@@ -15,14 +19,21 @@
   <body>
     <header>
       <nav>
-        <a href="{{ url_for('index') }}" class="tab">Picshare</a>
-        {% for i in menu %} {% if i == request.url.rsplit('/', 1)[-1] %}
-        <a href="{{ url_for('categories', name=i) }}" class="active-tab"
-          >{{ i }}</a
-        >
-        {% else %}
-        <a href="{{ url_for('categories', name=i) }}" class="tab"> {{ i }} </a>
-        {% endif %} {% endfor %}
+        <div>
+          <a href="{{ url_for('index') }}" class="tab">Picshare</a>
+          {% for i in menu %} {% if i == request.url.rsplit('/', 1)[-1] %}
+          <a href="{{ url_for('categories', name=i) }}" class="active-tab"
+            >{{ i }}</a
+          >
+          {% else %}
+          <a href="{{ url_for('categories', name=i) }}" class="tab">
+            {{ i }}
+          </a>
+          {% endif %} {% endfor %}
+        </div>
+        <div>
+          <a href="{{ url_for('upload_picture') }}">Upload a file</a>
+        </div>
       </nav>
     </header>
 
