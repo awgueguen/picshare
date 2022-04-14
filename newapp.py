@@ -34,7 +34,7 @@ tabs_titles = {
 
 post_tabs = {
     'comment': ['content', 'user_id', 'picture_id'],
-    'picture': ['user_id', 'name', 'description', 'category_id', 'filename'],
+    'picture': ['category_id', 'user_id', 'name', 'description',  'filename'],
     'tag': ['name'],
     'tagtopicture': ['tag_id', 'picture_id'],
     'user': ['name']
@@ -389,7 +389,7 @@ def upload_picture():
     if tags:
         inject_tags(tags, picture_id)
 
-    return render_template('upload.html', **JINJA_DATA)
+    return redirect(url_for('index'))
 
 
 # test ---------------------------------------------------------------------- #
