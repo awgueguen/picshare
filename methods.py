@@ -35,10 +35,10 @@ pairs = {'category_id': 'category',
          'tag_id': 'tag',
          'user_id': 'user'}
 
-# --------------------------------------------------------------------------- #
-# methods                                                                     #
-# --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+# db functions                                                                #
+# --------------------------------------------------------------------------- #
 
 def get_db():
     """Opens a new database connection if there is none yet.
@@ -87,6 +87,10 @@ def update_db(table: str, args=()):
     return cur.lastrowid
 
 
+# --------------------------------------------------------------------------- #
+# fetch data functions                                                        #
+# --------------------------------------------------------------------------- #
+
 def get_data(table: str, id=()):
     """Gets data from the database.
 
@@ -112,6 +116,10 @@ def get_data(table: str, id=()):
                    for i in range(len(tabs))} for j in rv]
     return clean_data
 
+
+# --------------------------------------------------------------------------- #
+# modify data functions                                                       #
+# --------------------------------------------------------------------------- #
 
 def clean_data(table: str, method='', args=()):
     """Cleans the data from the database.
@@ -185,6 +193,30 @@ def date_difference(date):
         value = delta.days//365
         return f'{value} year{"s" if value > 1 else ""} ago'
 
+
+def rename_picture(request):
+    """Renames the picture.
+
+    Args:
+        request (dict): request
+
+    Returns:
+        (str): new name of the picture
+    """
+    tmp_filename = request.form['name'].replace(' ', '-')
+    filename = (
+        ''.join((i for i in tmp_filename if
+                 (i.isalnum() or i == '-')))).lower()
+    query = f'SELECT filename FROM picture WHERE filename LIKE ?'
+    number = str(len(query_db(query, (filename+'-%',))) + 1)
+    true_name, file_extension = os.path.splitext(
+        secure_filename(request.files['picture'].filename))
+    return filename+'-'+number+file_extension
+
+
+# --------------------------------------------------------------------------- #
+# misc functions                                                              #
+# --------------------------------------------------------------------------- #
 
 def validator(request, conditions: list):
     """Validates the request.
@@ -275,23 +307,3 @@ def inject_tags(tags: list, picture_id: int):
             tag_id = update_db('tag', (i,))
             clean_data[i] = tag_id
         update_db('tagtopicture', (clean_data[i], picture_id, ))
-
-
-def rename_picture(request):
-    """Renames the picture.
-
-    Args:
-        request (dict): request
-
-    Returns:
-        (str): new name of the picture
-    """
-    tmp_filename = request.form['name'].replace(' ', '-')
-    filename = (
-        ''.join((i for i in tmp_filename if
-                 (i.isalnum() or i == '-')))).lower()
-    query = f'SELECT filename FROM picture WHERE filename LIKE ?'
-    number = str(len(query_db(query, (filename+'-%',))) + 1)
-    true_name, file_extension = os.path.splitext(
-        secure_filename(request.files['picture'].filename))
-    return filename+'-'+number+file_extension
