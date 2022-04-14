@@ -299,7 +299,6 @@ def inject_tags(tags: list, picture_id: int):
     """
     sql_existing = query_db('SELECT id, name FROM tag')
     clean_data = {i[1]: i[0] for i in sql_existing}
-    sql_join = 'INSERT INTO tagtopicture (tag_id, picture_id) VALUES (?, ?)'
     for i in tags:
         if i not in clean_data:
             tag_id = update_db('tag', (i,))
