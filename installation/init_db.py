@@ -80,8 +80,7 @@ cursor.execute("""CREATE TABLE user (
 
 def randomString():
     letters = string.ascii_letters
-    rv = ''.join(random.choice(letters) for i in range(8))
-    return rv
+    return ''.join(random.choice(letters) for _ in range(8))
 
 
 # users --------------------------------------------------------------------- #
