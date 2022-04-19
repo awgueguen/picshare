@@ -241,9 +241,10 @@ def validator(request, conditions: list):
                     error[i] = (
                         'This field must be less than 300 characters')
             elif i == 'nickname':
-                if len(values[i]) > 20:
+                tmp_nickname = values[i].replace(" ", '')
+                if len(tmp_nickname) > 20:
                     error[i] = ('Must be less than 20 characters')
-                elif not values[i].isalpha():
+                elif not tmp_nickname.isalpha():
                     error[i] = ('No special characters allowed')
             elif i == 'name':
                 if len(values[i]) > 20:
@@ -277,8 +278,11 @@ def extract_tags(string: str, recurse=False):
         string = ''.join([i for i in string if (i.isalnum() or i in allowed)])
         while '# ' in string:
             string = string.replace('# ', ' ')
-        while string[-1] == '#':
-            string = string[:-1]
+        if len(string) == 1:
+            string = ''
+        else:
+            while string[-1] == '#':
+                string = string[:-1]
 
     if not string or '#' not in string:
         return []
@@ -287,7 +291,9 @@ def extract_tags(string: str, recurse=False):
         tag = string[hash_pos:string.index(' ', hash_pos)]
     else:
         tag = string[hash_pos:]
-    return [tag[1:]] + extract_tags(string[hash_pos+1:], recurse=True)
+    tag_length = len(tag)
+    return [tag.replace('#', '')] + extract_tags(
+        string[tag_length:], recurse=True)
 
 
 def inject_tags(tags: list, picture_id: int):
@@ -298,9 +304,14 @@ def inject_tags(tags: list, picture_id: int):
         picture_id (int): id of the picture
     """
     sql_existing = query_db('SELECT id, name FROM tag')
-    clean_data = {i[1]: i[0] for i in sql_existing}
+    res = {i[1]: i[0] for i in sql_existing}
     for i in tags:
-        if i not in clean_data:
+        pictures_tags = query_db(
+            """SELECT tag_id, picture_id
+               FROM tagtopicture WHERE picture_id = ?""", (picture_id,))
+        if i not in res:
             tag_id = update_db('tag', (i,))
-            clean_data[i] = tag_id
-        update_db('tagtopicture', (clean_data[i], picture_id, ))
+            res[i] = tag_id
+        combinaison = (res[i], picture_id)
+        if combinaison not in pictures_tags:
+            update_db('tagtopicture', (res[i], picture_id, ))
