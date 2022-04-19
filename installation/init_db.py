@@ -170,13 +170,10 @@ for data in [
                         VALUES (?, ?, ?, ?, ?)""", data)
 
 # comment ------------------------------------------------------------------ #
-comments = []
-for i in range(40):
-    comments.append(
-        (f"""202{random.randint(1, 2)}-0{random.randint(1, 3)}-01
+comments = [(f"""202{random.randint(1, 2)}-0{random.randint(1, 3)}-01
             {random.randint(10, 23)}:{random.randint(10, 46)}:00""",
-         f'commentaire-\u2060{randomString()*2}', random.randint(1, 4),
-         random.randint(1, 17),))
+            f'commentaire-\u2060{randomString()*2}', random.randint(1, 4),
+             random.randint(1, 17),) for _ in range(40)]
 
 for data in comments:
     cursor.execute("""INSERT INTO comment
@@ -188,7 +185,7 @@ for data in comments:
 tags = ["photographie", "cinématographique", "poster", "web",
         "cinema", "random", "else"]
 
-for i in range(5):
+for _ in range(5):
     tags += [f'photographer-\u2060{randomString()}']
 
 for tag in tags:
@@ -196,7 +193,7 @@ for tag in tags:
 
 
 # maintag ------------------------------------------------------------------- #
-for i in range(40):
+for _ in range(40):
     cursor.execute(
         "INSERT INTO tagtopicture (tag_id, picture_id) VALUES (?, ?)",
         (random.randint(1, 12), random.randint(1, 17),))
