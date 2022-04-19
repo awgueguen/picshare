@@ -62,7 +62,7 @@ Ou depuis Fichier > Ouvrir un dossier
 Bien vérifier dans le terminal que s'affiche:
 
 ```bash
-../picshare-wip/
+../picshare/
 ```
 
 2. Puis lancer le script d'installation en utilisant:
