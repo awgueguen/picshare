@@ -19,7 +19,7 @@ pip3 install -r installation/requirements.txt
 
 echo -e "\n# création du fichier .flaskenv"
 
-echo -e "FLASK_APP=run.py\nFLASK_ENV=development" > .flaskenv
+echo -e "FLASK_APP=app.py\nFLASK_ENV=development" > .flaskenv
 # définit un ensemble de variables, afin d'arrêter le développement et passer
 # en production changer la ligne 20.
 
